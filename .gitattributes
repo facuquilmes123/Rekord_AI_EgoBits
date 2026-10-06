@@ -1,0 +1,5 @@
+# Preserve the audited vendor and fixture hashes across Windows checkouts.
+prototype/egobits/vendor/rekordbox_pdb/* -text whitespace=cr-at-eol
+prototype/tests/fixtures/*.pdb -text
+assets/licenses/rekordbox-pdb-MIT.txt -text whitespace=cr-at-eol
+upstream/** -text

@@ -1,0 +1,23 @@
+{
+  "repository": "https://github.com/fragmede/rekordbox-pdb",
+  "revision": "ee3bac2f22ca11a5ce61eea35f8cb951c246eaef",
+  "version": "0.1.0",
+  "license": "MIT",
+  "files": {
+    "__init__.py": "2956587be2989d3dfbe41bedbea33f0ea42aa8f757105b5662d90fc751ec3c23",
+    "pdb.py": "8b4d4fcc9e3392c7de43116dae92352714a08c30e9bf41faf79b8b6e49ba22d6",
+    "edit.py": "ee2fd2f1eadb1b6c9471408acfb5f70c36f5431915c78aa70ab737d0568acc2d"
+  },
+  "local_changes": "Bounds, page cycle detection, row offsets, allocation cursor validation. No installer scripts executed.",
+  "vendored_sha256": {
+    "__init__.py": "2956587be2989d3dfbe41bedbea33f0ea42aa8f757105b5662d90fc751ec3c23",
+    "pdb.py": "33d66e045fb6cf0be7e275266899a49013f7d07e429bccf6e81c97641a5e1049",
+    "edit.py": "ee2fd2f1eadb1b6c9471408acfb5f70c36f5431915c78aa70ab737d0568acc2d",
+    "LICENSE": "a7448612ba8424efd99d342bebfe874b859c1f38b9fde7c3e43b2aa648ba2ab1"
+  },
+  "fixture": {
+    "path": "prototype/tests/fixtures/devicesql-export.pdb",
+    "upstream": "one-song-export.pdb",
+    "sha256": "3097f266c887ce78497d669143733efd45ae26fbb221b7a562e9edc4050e3251"
+  }
+}

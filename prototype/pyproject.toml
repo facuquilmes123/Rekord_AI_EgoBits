@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 [project]
 name = "rekord-ai-egobits-core"
-version = "0.3.12"
+version = "0.4.0"
 requires-python = ">=3.12"
 description = "Offline XML planning prototype for Rekord AI EgoBits"
 dependencies = []

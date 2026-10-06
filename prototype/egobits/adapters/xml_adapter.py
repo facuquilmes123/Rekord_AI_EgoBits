@@ -161,7 +161,7 @@ def export_xml(lib: Library, result: dict[str, Any], name: str, target: Path) ->
             raise PlanningError('Location contiene un escape URI inválido')
 
     root = ET.Element('DJ_PLAYLISTS', Version='1.0.0')
-    ET.SubElement(root, 'PRODUCT', Name='Rekord AI', Version='0.3.12', Company='EgoBits')
+    ET.SubElement(root, 'PRODUCT', Name='Rekord AI', Version='0.4.0', Company='EgoBits')
     collection = ET.SubElement(root, 'COLLECTION', Entries=str(len(ids)))
     for tid in ids:
         track_node = copy.deepcopy(lib.nodes[tid])

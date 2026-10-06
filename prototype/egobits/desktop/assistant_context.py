@@ -29,10 +29,13 @@ def collection_context(lib, query, reference=None):
          'playlist_sample':[{'name':name[:70],'tracks':len(ids)} for name,ids in list(lib.playlists.items())[:8]],
          'track_sample':[{'id':t.id,'title':t.title[:60],'artist':t.artist[:40],'genre':t.genre[:35],
                           'bpm':t.bpm,'key':t.key,'energy':t.energy if t.energy_source else None} for t in hits],
-         'limitations':['Los conteos de collection cubren el XML completo; sólo track_sample y playlist_sample son muestras.',
-                        'El XML puede diferir de cambios posteriores en Rekordbox; no informa el audio actual.',
+         'source_kind':getattr(lib,'source_kind','xml'),
+         'limitations':['Los conteos de collection cubren toda la colección conectada; sólo track_sample y playlist_sample son muestras.',
+                        ('La base viva se lee en una transacción de sólo lectura; no informa el audio actual.' if getattr(lib,'source_kind','xml')=='native_snapshot' else 'El XML puede diferir de cambios posteriores en Rekordbox; no informa el audio actual.'),
+                        'Energía con fuente acoustic-v1 es un índice heurístico estimado; LUFS mide sonoridad, no energía musical científica.',
                         'No se ejecutaron acciones con esta respuesta.'],
          'available_workflows':['Buscar/parecidos/comparar/auditar/planificar; exportar XML/M3U8.',
+             'Laboratorio DJ: base viva, MyTags/estrellas/reproducciones, cues/frases, análisis acústico local, Key Shift opcional, USB respaldado y simulación Pro DJ Link.',
              'Crear playlist nativa, cierre asistido y restauración desde Configuración con revisión y respaldo.',
              'Duplicados idénticos: revisión, respaldo, cierre de Rekordbox, consolidación recuperable y restauración. Master audible no certificado.']}
     # Keep prompt within the existing local runtime's context budget.

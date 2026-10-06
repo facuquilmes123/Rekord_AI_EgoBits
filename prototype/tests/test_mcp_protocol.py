@@ -20,7 +20,12 @@ class McpProtocolTests(unittest.IsolatedAsyncioTestCase):
             async with ClientSession(read, write) as client:
                 await client.initialize()
                 names = {tool.name for tool in (await client.list_tools()).tools}
-                self.assertEqual(len(names), 13)
+                self.assertEqual(len(names), 15)
+                self.assertIn('collection.execute',names)
+                result=await client.call_tool('collection.execute',{'name':'collection.query','arguments':{'limit':2}})
+                self.assertFalse(result.isError)
+                result=await client.call_tool('collection.execute',{'name':'playlist.apply_native','arguments':{}})
+                self.assertTrue(result.isError)
                 self.assertNotIn('playlist.apply_native', names)
                 result = await client.call_tool('playlist.list', {})
                 self.assertFalse(result.isError)
