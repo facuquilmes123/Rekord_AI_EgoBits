@@ -27,7 +27,7 @@ Compilar backend y shell con la versión de `release.json`, comprobar hashes y h
 ## Verificación de 0.3.10 en este host (2026-10-06)
 
 - `python installer/release_contract.py`: contrato 0.3.10 verificado.
-- `PYTHONPATH=prototype python -m unittest discover -s prototype/tests -q`: 249 pruebas, 11 omitidas, código 0.
+- `PYTHONPATH=prototype python -m unittest discover -s prototype/tests -q`: 251 pruebas, 11 omitidas, código 0.
 - PyInstaller backend y `cargo build --release --locked --target x86_64-pc-windows-msvc`: completados con código 0. No se generó Setup.
 - Smoke de backend congelado con XML fixture aislado: arranque, comparación, conversación real local, cierre limpio y sin huérfanos aprobados. La primera conversación abierta tardó 88,8 s; el modelo local sigue siendo el límite de esa ruta.
 - Actualización directa: respaldo SHA-256 verificado de ambos ejecutables previos; cierre limpio del backend y del shell de Rekord AI; copia y hashes nuevos verificados; `settings.json` conservado byte por byte. Rekordbox no se cerró.

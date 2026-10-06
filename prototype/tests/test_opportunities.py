@@ -55,6 +55,16 @@ class OpportunityTests(unittest.TestCase):
                 self.assertEqual(data['suggestions'][0]['opportunity'],'genre')
             finally:server.shutdown();server.server_close();worker.join()
 
+    def test_demo_chat_requests_real_collection_without_model(self):
+        with patch.object(service,'_GLOBAL_LIB',self.lib),patch.object(service,'_SESSION_TOKEN',None),patch.object(service,'assistant_answer',side_effect=AssertionError('Must not invoke model')):
+            server=ThreadingHTTPServer(('127.0.0.1',0),service.EgoBitsRequestHandler);worker=threading.Thread(target=server.serve_forever,daemon=True);worker.start()
+            try:
+                request=urllib.request.Request(f'http://127.0.0.1:{server.server_port}/api/chat',data=json.dumps({'query':'¿Qué pistas están sin género?'}).encode(),headers={'Content-Type':'application/json'})
+                with urllib.request.urlopen(request,timeout=4) as response:data=json.load(response)
+                self.assertEqual(data['answer_mode'],'collection_required')
+                self.assertEqual(data['suggestions'][0]['tab'],'tab-config')
+            finally:server.shutdown();server.server_close();worker.join()
+
     def test_chat_analysis_bypasses_model_and_returns_actionable_detail(self):
         with patch.object(service,'_GLOBAL_LIB',self.lib),patch.object(service,'EXAMPLES_DIR',Path('unmatched-demo-source')),patch.object(service,'_SESSION_TOKEN',None),patch.object(service,'discover',return_value={'databases':[]}),patch.object(service,'assistant_answer',side_effect=AssertionError('Must not invoke model')):
             server=ThreadingHTTPServer(('127.0.0.1',0),service.EgoBitsRequestHandler);worker=threading.Thread(target=server.serve_forever,daemon=True);worker.start()

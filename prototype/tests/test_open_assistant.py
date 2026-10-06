@@ -51,6 +51,12 @@ class OpenAssistantTests(unittest.TestCase):
                         {**good,'answer':''}):
             with self.assertRaises(PlanningError):validate_answer(payload,ctx)
 
+    def test_model_cannot_call_complete_xml_counts_partial(self):
+        ctx=collection_context(self.lib,'auditar colección')
+        with self.assertRaisesRegex(PlanningError,'muestra'):
+            validate_answer({'answer':'Estos datos son parciales porque las muestras limitadas no representan la colección completa; se requiere acceso al master.',
+                             'suggested_questions':[],'track_ids':[]},ctx)
+
     def test_open_answer_uses_model_facts_and_preserves_questions(self):
         client=Mock();client.generate_answer.return_value={'answer':'Tu XML tiene 2 pistas y una sin tonalidad. Revisá el análisis antes de preparar un set.',
                                                          'suggested_questions':['¿Cómo ordeno mis playlists?'],'track_ids':[]}
