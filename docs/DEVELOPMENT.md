@@ -6,7 +6,7 @@
 - `AGENTS.md` establece las reglas de preservación, QA y actualización. Leerlo antes de cambiar la app.
 - `prototype/egobits/desktop/service.py` sirve la API local y enruta el chat. `opportunities.py` responde consultas de metadatos desde la colección completa; `assistant_context.py` acota los datos enviados al modelo.
 - `prototype/egobits/desktop/ui/` contiene la interfaz. `desktop/src-tauri/` contiene el shell Windows y la firma de aprobaciones nativas.
-- `docs/RELEASE_039.md` conserva la evidencia del último Setup completo; este cambio 0.3.10 es una actualización directa del host, sin nuevo Setup.
+- `docs/RELEASE_039.md` conserva la evidencia del último Setup completo; la versión actual 0.3.11 es una actualización directa del host, sin nuevo Setup. `docs/ASISTENTE_CAPACIDADES_0311.md` detalla capacidades, ejemplos y niveles de evidencia.
 
 ## Para cada cambio
 
@@ -33,3 +33,14 @@ Compilar backend y shell con la versión de `release.json`, comprobar hashes y h
 - Actualización directa: respaldo SHA-256 verificado de ambos ejecutables previos; cierre limpio del backend y del shell de Rekord AI; copia y hashes nuevos verificados; `settings.json` conservado byte por byte. Rekordbox no se cerró.
 - Instalación reiniciada: `/api/status` informó 0.3.10, colección real de 23.482 pistas y sin operación nativa activa. `/api/chat` respondió una consulta de faltantes en 0,081 s, con 14.215 pistas en la unión de género/BPM/tonalidad y enlaces a los tres listados.
 - Estos ensayos no certifican instalación nueva, actualización por Setup, Windows limpio, audio master ni hardware DJ. El registro de desinstalación del Setup previo puede conservar su versión anterior hasta publicar un nuevo instalador.
+
+## Verificación de 0.3.11 en este host (2026-10-06)
+
+- Contrato de versión aprobado; suite completa: 261 pruebas, 11 omitidas por dependencias opcionales, código 0. Diez pruebas nuevas cubren consultas del chat, validación de acciones, referencias repetidas, colecciones grandes y energía sin fuente.
+- Backend PyInstaller completado con código 0. Shell `cargo build --release --locked --target x86_64-pc-windows-msvc` completado con código 0. No se generó Setup.
+- Smoke EXE con XML fixture seleccionado y perfil temporal: exportación, comparación, resumen, inspección, auditoría, planificación desde colección, conversación local real, bloqueo de master no confirmado, cierre limpio y ausencia de huérfanos aprobados. Arranque 4,25 s; comparación 0,03 s; primera conversación 177,36 s con compilación y escaneo simultáneos. El modelo local sigue limitando las preguntas abiertas; estos tiempos no son un SLA.
+- XML real: 24.140 pistas y 22 playlists. Búsqueda, comparación, cinco recomendaciones compatibles, transiciones, propuesta de 10 pistas, orden manual y exportaciones temporales aprobadas; fuente preservada. Copia SQLCipher aislada: playlist creada, integridad `ok`, restauración byte por byte. Sin escritura en la base musical real.
+- El DJ autorizó cancelar el escaneo activo para actualizar. Se confirmó `cancelled`, ausencia de operación nativa activa y cierre limpio del backend. Se cerró sólo el shell de Rekord AI.
+- Respaldo de ejecutables en `%LOCALAPPDATA%\Rekord AI EgoBits\update-backups\before-0.3.11-20261006-172631`; hashes previos comprobados. Configuración conservada byte por byte. Hash SHA-256 del backend nuevo: `e9e31b91a0f45af36479458f6524cd4411aa045b1c8f185afbbfd96a96c169dd`; shell: `6a98e19e05daf95031e13ce23e765397c9ca6d153f2e46a62f6b5dc2ffb96187`.
+- Instalación reiniciada: `/api/status` informó 0.3.11, colección real y ausencia de operación nativa activa. `/api/chat`: resumen 0,078 s; propuesta 0,297 s; faltantes 0,063 s. Ayuda, inspección y auditoría aprobadas; consultas directas sin inferencia. Rekordbox permaneció abierto.
+- Revisión manual del agente principal: nuevos intents de lectura, validación de origen/IDs/opciones, propuesta sin aplicar, exportación por confirmación y preselección sin relajar restricciones. No se habilitaron escrituras al modelo/MCP. La matriz distingue pruebas aisladas de uso DJ real; no constituye revisión humana independiente ni certificación del último Setup en Windows limpio.
