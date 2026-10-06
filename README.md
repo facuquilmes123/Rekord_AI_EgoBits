@@ -1,4 +1,4 @@
-> **Desarrollo 0.3.11, 2026-10-06:** El chat responde consultas de metadatos faltantes con conteos y pistas del XML completo, abre listados paginados y solicita conectar una colección real cuando sólo está la demostración. El modelo local queda para preguntas abiertas. Esta versión se compila y actualiza directamente en este host; no se genera Setup. Ver `docs/DEVELOPMENT.md` para flujo de cambios y límites de validación.
+> **Desarrollo 0.3.12, 2026-10-06:** Consultas directas ampliadas, escaneo de duplicados por tamaño/prefijo/SHA completo, integridad de IA reutilizada con protección de archivos, recomendaciones compactas, eventos del shell y XML incremental hasta 256 MiB. [Evaluación, mediciones y límites](docs/RENDIMIENTO_0312.md). Actualización directa, sin nuevo Setup.
 
 > **Entrega 0.3.9, 2026-10-02:** Setup `dist/Rekord_AI_Setup_0.3.9_x64.exe` generado; cierre desde el aviso de duplicados, versión nativa corregida, recuperación de transacciones con respaldo y restauración, consulta de análisis y configuración en pestañas. 247 pruebas (246 aprobadas, 1 omitida), builds y smoke reales aprobados, Defender sin amenazas en este host, instalación/actualización/anti-downgrade con payload completo aislado aprobados. No se modificó la instalación ni colección del DJ. Leer `docs/RELEASE_039.md` para evidencia y límites; notas inferiores históricas.
 
@@ -10,7 +10,7 @@ Asistente DJ para Windows con chat local, planificación de sets, análisis de c
 
 ## Estado actual
 
-**0.3.11 en desarrollo**, con consultas directas de metadatos y verificación de colección conectada. El último Setup generado es **0.3.9**: [entrega y verificación](docs/RELEASE_039.md). **0.3.5 retirado por fallo de instalación**. El Setup Inno anterior incluye modelo y WebView2; la actualización directa de esta iteración no es un instalador distribuible. Master audible y flujos DJ reales siguen pendientes de certificación.
+**0.3.12 en desarrollo**, con mejoras de rendimiento y consultas directas sobre la colección conectada. El último Setup generado es **0.3.9**: [entrega y verificación](docs/RELEASE_039.md). **0.3.5 retirado por fallo de instalación**. El Setup Inno anterior incluye modelo y WebView2; la actualización directa de esta iteración no es un instalador distribuible. Master audible y flujos DJ reales siguen pendientes de certificación.
 
 La creación nativa de playlists y la consolidación de duplicados seguros exigen Rekordbox/agentes cerrados, respaldo automático verificado, revisión y confirmación nativa Windows. La restauración verifica integridad y esquema y recupera la música retirada. El XML fuente no se sobrescribe. [Reglas y recuperación de duplicados](docs/DUPLICADOS_SEGUROS_038.md).
 

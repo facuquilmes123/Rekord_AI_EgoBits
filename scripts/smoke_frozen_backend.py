@@ -73,7 +73,7 @@ def main():
             genre=request('/api/chat',{'query':'qué temas de tech house tengo?'})
             report['direct_aliases_seconds']=round(time.monotonic()-started,3)
             report['checks']['metadata_negation']=not missing['applied'] and missing['answer_mode']!='local_assistant'
-            report['checks']['informational_genre']=genre['intent']['action']=='library.search' and genre['intent']['params']['genre']=='tech house'
+            report['checks']['informational_genre']=genre['intent']['action']=='library.search' and genre['intent']['genre']=='tech house'
             compact=request('/api/recommend',{'current_track_id':'1'})
             report['checks']['compact_recommendations']='excluded' not in compact and compact['excluded_count']==sum(compact['excluded_reasons'].values())
             started=time.monotonic()
