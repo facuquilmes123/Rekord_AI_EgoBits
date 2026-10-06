@@ -1,0 +1,104 @@
+[
+  {
+    "path": "assets/branding/rekord-ia-original.png",
+    "sha256": "af24f655b79187a47bde286f2b8586f90af6ec794ea375071677e1f4fd212fc2",
+    "format": "PNG",
+    "mode": "RGBA",
+    "size": [
+      1254,
+      1254
+    ],
+    "ico_sizes": null
+  },
+  {
+    "path": "assets/branding/rekord-ia-tray-source.png",
+    "sha256": "bb0d46bc2746a9fa8380eaaa9d1872c801154e482c27a3c28799a0e73c94cb37",
+    "format": "PNG",
+    "mode": "RGBA",
+    "size": [
+      1254,
+      1254
+    ],
+    "ico_sizes": null
+  },
+  {
+    "path": "desktop/src-tauri/icons/rekord-ia.ico",
+    "sha256": "6f9c8853cccc8345c427f8b8bb750eeafdfdaa428db707c3dc195dd418f59f43",
+    "format": "ICO",
+    "mode": "RGBA",
+    "size": [
+      256,
+      256
+    ],
+    "ico_sizes": [
+      [
+        16,
+        16
+      ],
+      [
+        24,
+        24
+      ],
+      [
+        32,
+        32
+      ],
+      [
+        48,
+        48
+      ],
+      [
+        64,
+        64
+      ],
+      [
+        256,
+        256
+      ]
+    ]
+  },
+  {
+    "path": "desktop/src-tauri/icons/rekord-ia.png",
+    "sha256": "41dfa081064196e8a7b47df23f05753f0b4701e3aab6f1a1a226e8e36246f764",
+    "format": "PNG",
+    "mode": "RGBA",
+    "size": [
+      512,
+      512
+    ],
+    "ico_sizes": null
+  },
+  {
+    "path": "desktop/src-tauri/icons/rekord-ia-tray.png",
+    "sha256": "9a3cd9f9d2690dbc0bad140100216e77b1a1ab3d3571acbe7924e388dc4f7624",
+    "format": "PNG",
+    "mode": "RGBA",
+    "size": [
+      64,
+      64
+    ],
+    "ico_sizes": null
+  },
+  {
+    "path": "prototype/egobits/desktop/ui/rekord-ia.png",
+    "sha256": "c6eb45bccd99f6923dc589a78e25fe6c940d70f1ef1cc2bcb27699f2d1016fa4",
+    "format": "PNG",
+    "mode": "RGBA",
+    "size": [
+      128,
+      128
+    ],
+    "ico_sizes": null
+  },
+  {
+    "path": "prototype/egobits/desktop/ui/favicon.png",
+    "sha256": "2e84fdc8a6b1c038ccbfa410e3d25f16924e731d5c07f03620174f9fbc6ec689",
+    "format": "PNG",
+    "mode": "RGBA",
+    "size": [
+      32,
+      32
+    ],
+    "ico_sizes": null
+  }
+]

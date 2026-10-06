@@ -1,0 +1,40 @@
+# Local builds, installed runtimes, downloaded models, and test evidence
+build/
+dist/
+output/
+.playwright-cli/
+desktop/src-tauri/target/
+desktop/src-tauri/gen/
+desktop/src-tauri/binaries/
+assets/bin/
+assets/models/
+assets/licenses/dependencies/
+assets/licenses/audio/
+research/downloads/
+
+# Python and local tooling
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Local configuration, collections, and credentials
+.env
+.env.*
+*.db
+*.db-*
+*.sqlite*
+*.gguf
+*.pem
+*.p12
+*.pfx
+*.key
+settings.json
+*.log
+*.tmp
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/

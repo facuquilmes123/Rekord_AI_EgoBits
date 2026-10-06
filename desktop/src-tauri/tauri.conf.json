@@ -1,0 +1,32 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Rekord AI",
+  "version": "0.3.10",
+  "identifier": "com.egobits.rekordai",
+  "build": {
+    "frontendDist": "../../prototype/egobits/desktop/ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src ipc: http://ipc.localhost http://127.0.0.1:*"
+    },
+    "windows": [
+      {"label": "main", "title": "Rekord AI", "width": 1200, "height": 820, "minWidth": 900, "minHeight": 640}
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["msi", "nsis"],
+    "icon": ["icons/rekord-ia.ico", "icons/rekord-ia.png"],
+    "externalBin": ["binaries/egobits-backend"],
+    "resources": {
+      "../../assets/bin": "assets/bin",
+      "../../assets/licenses": "assets/licenses",
+      "../../installer/offline_assets.json": "installer/offline_assets.json"
+    },
+    "windows": {
+      "webviewInstallMode": {"type": "offlineInstaller"}
+    }
+  }
+}

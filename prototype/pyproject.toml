@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "rekord-ai-egobits-core"
+version = "0.3.10"
+requires-python = ">=3.12"
+description = "Offline XML planning prototype for Rekord AI EgoBits"
+dependencies = []
+[project.optional-dependencies]
+mcp = ["mcp>=1.12,<2"]
+ai = ["psutil==7.2.2"]
+native = ["pyrekordbox==0.4.4", "sqlcipher3-wheels==0.5.7", "psutil==7.2.2"]
+audio = ["PyAudioWPatch==0.2.12.8", "av==18.0.0", "numpy==2.5.3"]
+[project.scripts]
+egobits = "egobits.__main__:main"
+[tool.setuptools.packages.find]
+include = ["egobits*"]

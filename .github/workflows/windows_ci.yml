@@ -1,0 +1,40 @@
+name: Windows CI - Rekord AI EgoBits
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-and-verify:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: prototype/pyproject.toml
+
+      - name: Install declared MCP extra
+        run: python -m pip install -e "./prototype[mcp]"
+
+      - name: Verify Upstream Provenance & Prototype Tests
+        run: |
+          python scripts/verify_kit.py
+
+      - name: Test CLI XML Planner Flow
+        working-directory: ./prototype
+        run: |
+          python -m egobits --xml examples/library.xml --list
+          python -m egobits --xml examples/library.xml --playlist ROOT/X --playlist ROOT/Y --count 4 --mode bpm --out propuesta_ci.xml
+          python -m egobits --xml examples/library.xml --audit
+          python -m egobits --xml examples/library.xml --duplicates
+
+      # La verificaciÃ³n del paquete final se ejecuta en el build de release
+      # cuando estÃ©n presentes los pesos/binarios y sus hashes reales.

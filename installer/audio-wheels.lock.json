@@ -1,0 +1,10 @@
+[
+  {
+    "file": "av-18.0.0-cp311-abi3-win_amd64.whl",
+    "sha256": "aaf4d354d2beaa6651e4f92e54409a578bde64f79c0beef9a30b388d06f7c629"
+  },
+  {
+    "file": "pyaudiowpatch-0.2.12.8-cp312-cp312-win_amd64.whl",
+    "sha256": "fd163a6531c4e4969925e687ef1bc57fae8ecc1a95de7ba707a436622552d7fa"
+  }
+]

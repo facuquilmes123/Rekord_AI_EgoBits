@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="favicon.png" type="image/png">
+  <title>Rekord AI · Asistente DJ Offline</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="top-bar">
+      <div class="brand">
+        <img class="logo-mark" src="rekord-ia.png" alt="" width="48" height="48">
+        <div>
+          <h1>Rekord AI</h1>
+          <p class="subtitle">Tu música. Tu próximo gran set.</p>
+        </div>
+      </div>
+      <div class="system-status">
+        <div class="status-badge" id="rekordbox-badge">
+          <span class="dot dot-unknown"></span>
+          <span class="label">Rekordbox: <strong id="rb-state">Desconocido</strong></span>
+        </div>
+        <div class="status-badge">
+          <span class="dot dot-green"></span>
+          <span class="label">Biblioteca: <strong id="lib-tracks-count">Cargando...</strong></span>
+        </div>
+        <div class="status-badge">
+          <span class="label">Modo: <strong class="badge-offline">100% Offline</strong></span>
+        </div>
+      </div>
+    </header>
+
+    <p id="runtime-status" role="status" style="padding: 0.6rem 1.5rem">Conectando al servicio local…</p>
+    <nav class="nav-tabs" aria-label="Navegación principal">
+      <span class="nav-label">ESPACIO DE TRABAJO</span>
+      <button class="tab-btn active" data-tab="tab-chat" aria-current="page"><span aria-hidden="true">◌</span> Asistente</button>
+      <button class="tab-btn" data-tab="tab-planner"><span aria-hidden="true">≋</span> Preparar un set</button>
+      <button class="tab-btn" data-tab="tab-audit"><span aria-hidden="true">⌕</span> Mi colección</button>
+      <button class="tab-btn" data-tab="tab-config"><span aria-hidden="true">⚙</span> Configuración</button>
+      <div class="sidebar-footer"><span class="dot dot-green"></span> Procesamiento local<p>Tu biblioteca se queda en tu PC.</p><small>Al cerrar la ventana, Rekord AI permanece en la bandeja del reloj.</small></div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="tab-content">
+      <!-- TAB 1: PLANIFICADOR (FORMULARIO DETERMINISTA) -->
+      <section id="tab-planner" class="tab-pane"><details class="track-workspace panel"><summary>Explorar canciones y construir mi selección</summary><div class="track-toolbar"><input type="search" id="track-search" placeholder="Buscar título, artista o género" aria-label="Buscar pistas de la colección"><button type="button" id="track-search-button" class="btn btn-secondary">Buscar</button><button type="button" id="track-more" class="btn btn-secondary">Más pistas</button><span id="track-count" class="hint"></span></div><div class="track-columns"><div id="track-browser"></div><div><h3>Mi orden manual</h3><p class="hint">Seleccioná canciones o arrastralas desde el listado. Usá las flechas para cambiar el orden.</p><div id="draft-list" class="draft-list" aria-label="Pistas seleccionadas"></div><button type="button" id="preview-draft" class="btn btn-primary">Revisar orden y exportar</button><button type="button" id="clear-draft" class="btn btn-secondary">Vaciar selección</button><p id="draft-audit" class="hint"></p></div></div></details>
+        <div class="grid-layout">
+          <!-- Configuración del Plan -->
+          <div class="panel form-panel">
+            <div class="panel-header-actions"><h2>Prepará tu próximo set</h2><button id="open-wizard" type="button" class="btn btn-secondary">✦ Asistente guiado</button></div>
+            <form id="plan-form">
+              <div class="form-group">
+                <label for="plan-source">¿De dónde partimos?</label><select id="plan-source"><option value="playlists">De playlists existentes</option><option value="collection">De toda mi colección</option><option value="selected">De las pistas que seleccioné</option></select><label>Playlists de origen:</label>
+                <div id="playlist-checkboxes" class="checkbox-list">
+                  <span class="hint">Cargando playlists...</span>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="plan-mode">Modo de optimización:</label>
+                  <select id="plan-mode">
+                    <option value="bpm">BPM Ascendente continuo</option>
+                    <option value="energy">Curva de Energía creciente (0..10)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="plan-count">Cantidad de pistas:</label>
+                  <input type="number" id="plan-count" value="4" min="1" max="50">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="plan-max-step">Salto máx. BPM por transición:</label>
+                  <input type="number" id="plan-max-step" value="3.0" step="0.5" min="0.5" max="10">
+                </div>
+                <div class="form-group">
+                  <label for="plan-out-name">Nombre de la nueva playlist:</label>
+                  <input type="text" id="plan-out-name" value="Rekord AI - Selección">
+                </div>
+              </div>
+
+              <div class="form-group"><label for="plan-genre">Género (opcional)</label><select id="plan-genre"><option value="">Todos los géneros</option></select></div><div class="toggles-grid">
+                <label class="toggle-control">
+                  <input type="checkbox" id="plan-harmonic" checked>
+                  <span class="toggle-slider"></span>
+                  <span>Rueda Camelot (Armonía)</span>
+                </label>
+                <label class="toggle-control">
+                  <input type="checkbox" id="plan-avoid-artist" checked>
+                  <span class="toggle-slider"></span>
+                  <span>Evitar artista consecutivo</span>
+                </label>
+                <label class="toggle-control">
+                  <input type="checkbox" id="plan-same-genre">
+                  <span class="toggle-slider"></span>
+                  <span>Forzar mismo género</span>
+                </label>
+              </div>
+
+              <button type="submit" id="btn-calculate-plan" class="btn btn-primary">
+                Calcular propuesta
+              </button>
+            </form>
+          </div>
+
+          <!-- Previsualización y Resultados -->
+          <div class="panel results-panel">
+            <div class="panel-header-actions">
+              <h2>Vista Previa & Transiciones</h2>
+              <select id="export-format" aria-label="Formato de exportación"><option value="xml">XML · cues y beatgrids</option><option value="m3u8">M3U8 · rutas y orden</option></select><button id="btn-export-xml" class="btn btn-accent" disabled>
+                Exportar playlist
+              </button>
+            </div>
+
+            <div id="plan-metrics" class="metrics-row" style="display: none;">
+              <div class="metric-card">
+                <span class="m-val" id="metric-tracks">0</span>
+                <span class="m-lbl">Pistas</span>
+              </div>
+              <div class="metric-card">
+                <span class="m-val" id="metric-duration">0:00</span>
+                <span class="m-lbl">Duración Est.</span>
+              </div>
+              <div class="metric-card">
+                <span class="m-val" id="metric-bpm-range">-</span>
+                <span class="m-lbl">Rango BPM</span>
+              </div>
+              <div class="metric-card">
+                <span class="m-val" id="metric-score">-</span>
+                <span class="m-lbl">Puntaje Plan</span>
+              </div>
+            </div>
+
+            <div id="plan-exclusions-card" class="exclusions-card" style="display: none;">
+              <h3>⚠️ Pistas Excluidas del Cálculo</h3>
+              <ul id="exclusions-list"></ul>
+            </div>
+
+            <div id="plan-empty-state" class="empty-state">
+              <p>Seleccioná al menos una playlist y hacé clic en «Calcular Propuesta» para ver la propuesta determinista.</p>
+            </div>
+
+            <div id="plan-table-container" style="display: none;">
+              <table class="tracks-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Título</th>
+                    <th>Artista</th>
+                    <th>BPM</th>
+                    <th>Camelot</th>
+                    <th>Energía</th>
+                    <th>Transición</th>
+                  </tr>
+                </thead>
+                <tbody id="plan-tbody"></tbody>
+              </table>
+            </div>
+
+            <div id="export-success-banner" class="banner banner-success" style="display: none;">
+              <span>✅ Archivo XML exportado exitosamente. Podés arrastrarlo o importarlo en Rekordbox vía <strong>XML Bridge</strong>.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: CHAT ASISTENTE DJ -->
+      <section id="tab-chat" class="tab-pane active">
+        <div class="chat-container">
+          <div id="setup-notice" class="setup-notice" hidden>Conectá tu colección para trabajar con tu música. <button type="button" id="open-setup" class="btn btn-secondary">Configurar colección</button></div>
+          <div class="chat-heading"><span class="eyebrow">ASISTENTE PERSONAL PARA DJ</span><h2>¿Qué set preparamos hoy?</h2><p>Explorá tu colección y encontrá la próxima conexión.</p></div>
+          <div class="chat-messages" id="chat-messages" role="log" aria-label="Conversación" aria-live="polite">
+            <div class="message msg-assistant">
+              <div class="msg-avatar"><img src="rekord-ia.png" alt="Rekord AI" width="32" height="32"></div>
+              <div class="msg-body">
+                <p>¡Hola! Soy <strong>Rekord AI</strong>, tu asistente de cabina y planificación 100% offline.</p>
+                <p>Puedo ayudarte a combinar playlists con curvas de BPM, tonalidades Camelot compatibles, auditar tu colección o recomendar transiciones. ¿Qué querés preparar hoy?</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-prompt-chips">
+            <button class="chip" data-prompt="Uní las playlists ROOT/X y ROOT/Y subiendo BPM con 4 temas">Unir playlists · BPM</button>
+            <button class="chip" data-prompt="Uní ROOT/X y ROOT/Y en modo energía">Preparar una curva de energía</button>
+            <button class="chip" data-prompt="Auditá los metadatos de mi colección">Revisar mi colección</button>
+            <button class="chip" data-prompt="¿Qué pistas duplicadas tengo?">Encontrar duplicados</button>
+          </div>
+
+          <form id="chat-form" class="chat-input-bar">
+            <textarea id="chat-input" rows="2" aria-label="Mensaje para Rekord AI" placeholder="Pedile algo a tu colección… Usá @ para invocar una canción" autocomplete="off" aria-controls="mention-options" aria-haspopup="listbox" aria-expanded="false"></textarea>
+            <button type="submit" class="btn btn-primary">Enviar</button>
+          </form>
+          <div id="mention-options" class="mention-options" role="listbox" aria-label="Canciones de tu colección" hidden></div>
+          <p class="composer-note">IA local · @ para elegir una canción · Enter para enviar · Hasta 5 búsquedas separadas por punto y coma.</p>
+        </div>
+      </section>
+
+      <!-- TAB 3: AUDITORÍA & DUPLICADOS -->
+      <section id="tab-audit" class="tab-pane">
+        <div class="grid-layout">
+          <div class="panel">
+            <h2>Salud de la Colección</h2>
+            <div id="audit-metrics" class="metrics-row">
+              <div class="metric-card">
+                <span class="m-val" id="audit-health">-</span>
+                <span class="m-lbl">Salud de Metadatos</span>
+              </div>
+              <div class="metric-card">
+                <span class="m-val" id="audit-missing-bpm">0</span>
+                <span class="m-lbl">Sin BPM</span>
+              </div>
+              <div class="metric-card">
+                <span class="m-val" id="audit-missing-key">0</span>
+                <span class="m-lbl">Sin Tonalidad</span>
+              </div>
+            </div>
+            <button id="btn-run-audit" class="btn btn-primary" style="margin-top: 1rem;">Ejecutar Auditoría Completa</button>
+            <div id="audit-details" style="margin-top: 1.5rem;"></div>
+          </div>
+
+          <div class="panel">
+            <h2>Revisión de duplicados</h2><p class="hint">Verificá todos los archivos de la colección XML cargada con un clic. Se lee su contenido completo, incluso si tienen nombres distintos. El puntaje mide evidencia de coincidencia, no probabilidad. Un análisis grande puede demorar; podés cancelarlo.</p>
+            <button id="btn-run-duplicates" class="btn btn-primary">Verificar toda la colección</button>
+            <button id="btn-cancel-duplicates" class="btn btn-secondary" hidden>Cancelar análisis</button>
+            <p id="duplicate-progress" class="hint" role="status" aria-live="polite"></p>
+            <div id="duplicate-rule" hidden>
+              <label for="duplicate-threshold">Coincidencia mínima (mayor o igual al porcentaje elegido)</label>
+              <select id="duplicate-threshold"><option value="100">100%: coincidencia exacta</option><option value="95">95% hacia arriba</option><option value="90">90% hacia arriba</option><option value="85">85% hacia arriba</option><option value="70">70% hacia arriba</option><option value="50">50% hacia arriba</option></select>
+              <button id="btn-duplicate-rule" class="btn btn-secondary">Revisar regla</button>
+              <button id="btn-duplicate-delete" class="btn btn-primary" type="button">Eliminar duplicados desde este porcentaje…</button>
+              <p id="duplicate-delete-state" class="hint" role="status">Preparar respaldo → revisar → confirmar en Windows. Si Rekordbox está abierto, solicitá su cierre desde el aviso o Configuración → Base y procesos. Los archivos retirados se conservan en recuperación para poder restaurarlos.</p>
+              <p class="hint">Sólo archivos idénticos por SHA-256 completo entran en la propuesta automática. Metadatos parecidos y cues diferentes quedan protegidos. Siempre se conserva al menos una pista por grupo, priorizando la más utilizada en playlists.</p>
+              <div id="duplicate-rule-preview" aria-live="polite"></div>
+            </div>
+            <div id="duplicates-list" style="margin-top: 1rem;">
+              <span class="hint">Iniciá la verificación para ver resultados ordenados por coincidencia.</span>
+            </div>
+          </div>
+        </div>
+      <div id="collection-extras">
+        <div class="panel"><div class="panel-header-actions"><h2>Tu colección en perspectiva</h2><button type="button" id="refresh-insights" class="btn btn-secondary">Actualizar análisis</button></div><div id="collection-kpis" class="metrics-row"></div><div class="charts-grid"><div><h3>Géneros</h3><div id="genre-chart"></div></div><div><h3>Distribución de BPM</h3><div id="bpm-chart"></div></div><div><h3>Tonalidades</h3><div id="key-chart"></div></div></div><h3>Conexiones entre canciones</h3><p class="hint">Elegí «Sugerir próximas» en una canción del explorador. Se aplican los filtros de Configuración a tu colección, sin afirmar que esa canción esté sonando.</p><div id="collection-connections"></div><h3>Ideas para mejorar tu colección</h3><div id="collection-suggestions"></div></div>
+      </div>
+      </section>
+
+      <!-- TAB 4: CONFIGURACIÓN & NOTIFICACIONES -->
+      <section id="tab-config" class="tab-pane">
+        <div class="panel" style="max-width: 800px; margin: 0 auto;">
+          <h2>Configuración</h2><p class="hint">Tu colección, asistente y seguridad, en un solo lugar.</p>
+          <nav class="settings-tabs" role="tablist" aria-label="Secciones de configuración">
+            <button type="button" role="tab" id="settings-tab-collection" data-settings="collection" aria-controls="settings-collection" aria-selected="true">Colección</button>
+            <button type="button" role="tab" id="settings-tab-ai" data-settings="ai" aria-controls="settings-ai" aria-selected="false" tabindex="-1">Asistente IA</button>
+            <button type="button" role="tab" id="settings-tab-recommendations" data-settings="recommendations" aria-controls="settings-recommendations" aria-selected="false" tabindex="-1">Recomendaciones</button>
+            <button type="button" role="tab" id="settings-tab-native" data-settings="native" aria-controls="settings-native" aria-selected="false" tabindex="-1">Base y procesos</button>
+            <button type="button" role="tab" id="settings-tab-backups" data-settings="backups" aria-controls="settings-backups" aria-selected="false" tabindex="-1">Respaldos</button>
+          </nav><section class="settings-pane" id="settings-collection" role="tabpanel" aria-labelledby="settings-tab-collection"><h3>Conectá tu colección</h3>
+          <div class="discovery-card"><p id="discovery-status" role="status">Buscando Rekordbox en esta PC…</p><ul id="discovery-results"></ul><p id="discovery-next" class="hint"></p><button type="button" id="rescan" class="btn btn-secondary">Volver a detectar</button></div>
+          <form id="library-form">
+            <div class="form-group"><label for="config-xml-path">XML exportado de tu colección:</label><div class="path-picker"><input type="text" id="config-xml-path" required placeholder="Seleccioná la exportación XML"><button type="button" class="btn btn-secondary" id="browse-library">Explorar…</button></div></div>
+            <div class="form-group"><label for="config-energy-path">JSON de energías de esta colección (opcional):</label><div class="path-picker"><input type="text" id="config-energy-path"><button type="button" class="btn btn-secondary" id="browse-energies">Explorar…</button></div></div>
+            <button class="btn btn-primary" type="submit">Cargar colección</button>
+          </form>
+          <p class="hint">El XML original se conserva. Sin selección se usa una biblioteca de demostración identificada como tal.</p>
+</section><form id="settings-form" hidden></form><section class="settings-pane" id="settings-ai" role="tabpanel" aria-labelledby="settings-tab-ai" hidden>
+            <h3>Asistente local</h3><p class="hint">Se inicia automáticamente cuando tu pregunta necesita interpretación. Todo funciona sin APIs de pago.</p>
+            <label class="checkbox-item"><input form="settings-form" type="checkbox" id="config-llm">Usar IA local para consultas no reconocidas</label>
+<button form="settings-form" class="btn btn-primary" type="submit">Guardar preferencias</button></section><section class="settings-pane" id="settings-recommendations" role="tabpanel" aria-labelledby="settings-tab-recommendations" hidden><h3>Notificaciones y próximas canciones</h3>            <label class="checkbox-item"><input form="settings-form" type="checkbox" id="config-push">Permitir popups y notificaciones de recomendaciones</label>
+            <label class="checkbox-item"><input form="settings-form" type="checkbox" id="config-silence">Modo Silencio</label>
+            <div class="form-group"><label for="config-frequency">Intervalo mínimo entre avisos (segundos):</label><input form="settings-form" type="number" id="config-frequency" min="10" max="3600"></div>
+            <h3>Filtros de próximas canciones</h3><p class="hint">BPM y tonalidad se leen de tu colección. Género y energía sólo se usan cuando están informados. El popup por historial usa la última pista registrada como referencia; no certifica el master audible.</p>
+            <button form="settings-form" id="rec-three-defaults" type="button" class="btn btn-secondary">Usar BPM + género + tonalidad</button><p class="hint">Los criterios activos deben cumplirse todos; no se relajan automáticamente. También se usan en el popup. Las preferencias que ya guardaste se conservan.</p>
+            <div class="form-row">
+              <div class="form-group"><label for="rec-count">Cantidad:</label><input form="settings-form" type="number" id="rec-count" min="1" max="50"></div>
+              <div class="form-group"><label for="rec-bpm">Diferencia máxima de BPM:</label><input form="settings-form" type="number" id="rec-bpm" min="0" max="30" step="0.5"></div>
+              <div class="form-group"><label for="rec-energy">Diferencia de energía (vacío: sin filtro):</label><input form="settings-form" type="number" id="rec-energy" min="0" max="10" step="0.5"></div>
+            </div>
+            <label class="checkbox-item"><input form="settings-form" type="checkbox" id="rec-harmonic">Compatibilidad Camelot</label>
+            <label class="checkbox-item"><input form="settings-form" type="checkbox" id="rec-match-bpm">Coincidencia por BPM</label>
+            <label for="rec-key-mode">Coincidencia tonal</label><select form="settings-form" id="rec-key-mode"><option value="compatible">Tonalidades armónicamente compatibles (Camelot)</option><option value="same">Sólo la misma tonalidad</option></select>
+            <label for="rec-duration">Duración mínima de la recomendación (minutos, vacío: sin filtro)</label><input form="settings-form" type="number" id="rec-duration" min="0" max="120" step="0.5">
+            <label class="checkbox-item"><input form="settings-form" type="checkbox" id="rec-genre">Mismo género</label>
+            <label class="checkbox-item"><input form="settings-form" type="checkbox" id="rec-artist">Evitar mismo artista</label>
+            <button form="settings-form" class="btn btn-primary" type="submit">Guardar preferencias</button>
+          
+          <form id="recommend-form" style="margin-top:1rem">
+            <label for="rec-track">Pista de referencia de tu colección (selección manual):</label><input type="search" id="rec-search" placeholder="Filtrar pistas por título o artista" aria-label="Buscar pista de referencia"><select id="rec-track" required><option value="">Elegí una pista</option></select><p class="hint">Elegir una referencia no confirma qué está sonando. Los filtros guardados se aplican sobre esta colección.</p>
+            <button class="btn btn-secondary" type="submit">Recomendar desde esta pista</button>
+          </form>
+          <pre id="recommend-result" style="white-space:pre-wrap" aria-live="polite"></pre>
+          <h3>Qué está disponible en esta PC</h3><div id="availability-overview" class="availability-grid"></div><p class="hint">XML y M3U8 crean archivos nuevos para importar. Crear una playlist directamente exige respaldo y revisión en el flujo de abajo. La lectura audible requiere una fuente validada.</p>
+          <h3>Recomendaciones automáticas de mi colección · sin capturar audio</h3>
+          <p id="recommendation-delivery-state" class="hint" role="status">Comprobando el estado del popup…</p>
+          <button id="metadata-recommend-start" type="button" class="btn btn-primary">Activar recomendaciones sin audio</button>
+          <label class="checkbox-item"><input id="history-monitor" type="checkbox">Mostrar popup según la última pista registrada en Rekordbox</label>
+          <p class="hint">Usa la última pista registrada como referencia y sigue nuevas entradas del historial cada 5 segundos. Compara BPM, género y tonalidad de tu colección según los filtros guardados; no captura sonido. El popup muestra la referencia, no afirma que sea la pista audible actual. El historial puede demorarse. Las preferencias y el modo silencio se respetan.</p>
+          <div id="history-suggestions" aria-live="polite"></div>
+          <details><summary>Opcional avanzado: ensayo de identificación por audio</summary>
+          <h3>Recomendaciones automáticas por audio · experimental</h3>
+          <button id="audio-devices-refresh" type="button" class="btn btn-secondary">Detectar salidas de audio</button>
+          <label for="audio-device">Salida a la que llega el master</label><select id="audio-device"><option value="">Detectá dispositivos primero</option></select>
+          <p class="hint">No necesitás seleccionar canciones. Detectá la salida, autorizá el análisis local y activá las recomendaciones. La app prepara referencias desde tu colección y el historial, las actualiza durante la sesión y verifica el audio antes de sugerir. Si una pista todavía no está registrada en el historial, puede haber demora. El audio permanece en memoria. ASIO/exclusivo puede requerir PC MASTER OUT. Mezclas, cambios de pitch o pistas fuera de las referencias pueden impedir identificar; este modo experimental no certifica el master.</p>
+          <label class="checkbox-item"><input id="audio-consent" type="checkbox">Analizar localmente la salida seleccionada</label>
+          <button id="audio-signal" type="button" class="btn btn-secondary">Comprobar señal del master (3 segundos)</button><p id="audio-signal-state" class="hint" role="status">Detectá la salida y comprobá su señal antes de iniciar el seguimiento.</p>
+          <button id="audio-watch-start" type="button" class="btn btn-primary">Activar recomendaciones automáticas</button><button id="audio-watch-stop" type="button" class="btn btn-secondary">Detener seguimiento</button><p id="audio-watch-state" class="hint" role="status">Seguimiento desactivado</p>
+          <button id="audio-identify" type="button" class="btn btn-secondary">Probar identificación de audio</button><pre id="audio-result" style="white-space:pre-wrap" aria-live="polite"></pre>
+          </details>
+          </section><section class="settings-pane" id="settings-native" role="tabpanel" aria-labelledby="settings-tab-native" hidden><h3>Base y procesos de Rekordbox</h3><p id="native-process-status" class="hint" role="status">Comprobá los procesos antes de modificar la colección.</p><button id="native-process-refresh" type="button" class="btn btn-secondary">Volver a comprobar procesos</button><button id="native-inspect" type="button" class="btn btn-secondary">Verificar acceso a la base real</button>
+          <button id="rekordbox-close" type="button" class="btn btn-secondary" disabled>Cerrar Rekordbox y sus agentes</button><p class="hint" id="rekordbox-close-result">El cierre asistido se habilita cuando Rekordbox o sus agentes están abiertos. Te pediremos confirmación y respetaremos las ventanas de guardado.</p>
+          <button id="rekordbox-force-close" type="button" class="btn btn-danger" hidden>Finalizar procesos…</button><button id="native-close-return" type="button" class="btn btn-primary" hidden>Volver a eliminar duplicados</button><button id="native-prepare" type="button" class="btn btn-secondary">Crear playlist en Rekordbox con respaldo</button><p class="hint">Seleccioná de 1 a 100 pistas y un nombre en Preparar set. Cerrá Rekordbox y sus agentes de sincronización. Primero respaldamos y verificamos una copia; después revisás y confirmás la escritura. No abras Rekordbox durante la operación.</p><button id="transactions-recover" type="button" class="btn btn-secondary">Respaldar y recuperar transacciones…</button><p class="hint">Si finalizaste procesos y quedaron transacciones pendientes, conservamos una copia verificada antes de recuperarlas. Requiere Rekordbox cerrado y tu confirmación.</p><pre id="native-result" style="white-space:pre-wrap" aria-live="polite"></pre>
+          </section><section class="settings-pane" id="settings-backups" role="tabpanel" aria-labelledby="settings-tab-backups" hidden><h3>Respaldos y recuperación</h3><p class="hint">Se guardan automáticamente antes de cada cambio. Restaurar recupera la colección completa de ese momento; antes guardaremos también el estado actual. Los respaldos de playlists recuperan la base. La eliminación de duplicados también conserva los archivos retirados en recuperación; puede restaurar colección y música.</p><button id="native-backups-refresh" class="btn btn-secondary" type="button">Ver mis respaldos</button><div id="native-backups" aria-live="polite"></div>
+          <p id="native-reason" class="hint"></p>
+          <button id="live-action" class="btn">Ver estado de recomendaciones</button>
+          <p id="live-reason" class="hint"></p>
+          </section><div class="banner banner-info" style="margin-top: 1.5rem;">
+            <strong>Seguridad y Privacidad:</strong> Rekord AI no envía datos de tu biblioteca, títulos ni ubicaciones a servidores externos. Todo el cálculo y análisis se efectúa en tu máquina.
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="notice-stack" class="notice-stack" aria-live="polite" aria-atomic="false"></div>
+  <dialog id="opportunity-dialog" class="app-dialog"><form method="dialog"><button class="dialog-close btn btn-secondary" aria-label="Cerrar detalle">×</button></form><h2 id="opportunity-title">Detalle de oportunidad</h2><p id="opportunity-description"></p><p id="opportunity-instructions"></p><div id="opportunity-tracks"></div><button id="opportunity-more" class="btn btn-secondary" type="button" hidden>Ver más pistas</button><button id="opportunity-config" class="btn btn-primary" type="button">Abrir herramienta</button></dialog>
+  <dialog id="wizard-dialog" class="app-dialog"><form method="dialog"><button class="dialog-close btn btn-secondary" aria-label="Cerrar asistente">×</button></form><span class="eyebrow">REKORD AI · PREPARACIÓN GUIADA</span><h2 id="wizard-title"></h2><div id="wizard-content"></div><div class="wizard-navigation"><button type="button" id="wizard-back" class="btn btn-secondary">Atrás</button><span id="wizard-progress"></span><button type="button" id="wizard-next" class="btn btn-primary">Siguiente</button></div></dialog>
+  <script src="app.js"></script><script src="settings-tabs.js"></script><script src="workspace.js"></script>
+</body>
+</html>

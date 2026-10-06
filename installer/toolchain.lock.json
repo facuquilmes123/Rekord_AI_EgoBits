@@ -1,0 +1,15 @@
+{
+  "rust_toolchain": "1.98.1-x86_64-pc-windows-msvc",
+  "rustup": {
+    "url": "https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe",
+    "sha256": "6f4bef66261261fcb43131be8720bab817d403a09edec7455c371974b90bdb7e",
+    "size": 12721664
+  },
+  "tauri_cli": {
+    "version": "2.11.5",
+    "package": "@tauri-apps/cli",
+    "npm_lockfile": "installer/tauri-cli.package-lock.json"
+  },
+  "python_build": "installer/requirements-build.lock",
+  "cargo": "desktop/src-tauri/Cargo.lock"
+}

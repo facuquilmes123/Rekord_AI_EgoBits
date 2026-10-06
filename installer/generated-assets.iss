@@ -1,0 +1,5 @@
+#define ReleaseVersion "0.3.9"
+#define ModelHash "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4"
+#define WebViewHash "ad9b350625e132481bc0953eee9e032810134df9fedbd7be364c3f4e0e4dbd64"
+#define ShellHash "0181cde48dfe8ad30a055232e6903853c68b759e6d6bd399c115cdaa2803b1a2"
+#define BackendHash "ca96d3e254f33bd91fbe01fcf30dbf3a86572decf05f46ee5ecb4689843fe94c"

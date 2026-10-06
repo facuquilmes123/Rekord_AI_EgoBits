@@ -1,0 +1,263 @@
+[
+  {
+    "repo": "davehenke/rekordbox-mcp",
+    "path": "LICENSE",
+    "revision": "d8dce67700911b6bef84b25c5f93ae07f200a1c5",
+    "source_url": "https://raw.githubusercontent.com/davehenke/rekordbox-mcp/d8dce67700911b6bef84b25c5f93ae07f200a1c5/LICENSE",
+    "local_path": "upstream/davehenke__rekordbox-mcp/LICENSE",
+    "sha256": "44236341a58e4c916202b08defcc2810f55ba2ccbdf7c1e409e4bb1e63f81582",
+    "license": "MIT"
+  },
+  {
+    "repo": "davehenke/rekordbox-mcp",
+    "path": "README.md",
+    "revision": "d8dce67700911b6bef84b25c5f93ae07f200a1c5",
+    "source_url": "https://raw.githubusercontent.com/davehenke/rekordbox-mcp/d8dce67700911b6bef84b25c5f93ae07f200a1c5/README.md",
+    "local_path": "upstream/davehenke__rekordbox-mcp/README.md",
+    "sha256": "f019be539e8c951abb375b8de2219e4326dd4574778cfb009f7a9c97e20c751f",
+    "license": "MIT"
+  },
+  {
+    "repo": "davehenke/rekordbox-mcp",
+    "path": "pyproject.toml",
+    "revision": "d8dce67700911b6bef84b25c5f93ae07f200a1c5",
+    "source_url": "https://raw.githubusercontent.com/davehenke/rekordbox-mcp/d8dce67700911b6bef84b25c5f93ae07f200a1c5/pyproject.toml",
+    "local_path": "upstream/davehenke__rekordbox-mcp/pyproject.toml",
+    "sha256": "ba473ea5906fea2ff1ab571abbb24a7665b0ceb99a5154d13d13e1d29827b191",
+    "license": "MIT"
+  },
+  {
+    "repo": "davehenke/rekordbox-mcp",
+    "path": "rekordbox_mcp/database.py",
+    "revision": "d8dce67700911b6bef84b25c5f93ae07f200a1c5",
+    "source_url": "https://raw.githubusercontent.com/davehenke/rekordbox-mcp/d8dce67700911b6bef84b25c5f93ae07f200a1c5/rekordbox_mcp/database.py",
+    "local_path": "upstream/davehenke__rekordbox-mcp/rekordbox_mcp/database.py",
+    "sha256": "47f0c47e07f86ce9222bfe78ea9e250223e7853a332b6fd0d6d4f94305b883a0",
+    "license": "MIT"
+  },
+  {
+    "repo": "davehenke/rekordbox-mcp",
+    "path": "rekordbox_mcp/models.py",
+    "revision": "d8dce67700911b6bef84b25c5f93ae07f200a1c5",
+    "source_url": "https://raw.githubusercontent.com/davehenke/rekordbox-mcp/d8dce67700911b6bef84b25c5f93ae07f200a1c5/rekordbox_mcp/models.py",
+    "local_path": "upstream/davehenke__rekordbox-mcp/rekordbox_mcp/models.py",
+    "sha256": "f84cd2ee1fd44d3ff6ae11272fe3ab8b526f51b277ef63680e49b0513e453786",
+    "license": "MIT"
+  },
+  {
+    "repo": "davehenke/rekordbox-mcp",
+    "path": "rekordbox_mcp/server.py",
+    "revision": "d8dce67700911b6bef84b25c5f93ae07f200a1c5",
+    "source_url": "https://raw.githubusercontent.com/davehenke/rekordbox-mcp/d8dce67700911b6bef84b25c5f93ae07f200a1c5/rekordbox_mcp/server.py",
+    "local_path": "upstream/davehenke__rekordbox-mcp/rekordbox_mcp/server.py",
+    "sha256": "791254eee54871232cf9c27ba54ebe9f7b8c4e4b651bfeebbe58d5917686fd0b",
+    "license": "MIT"
+  },
+  {
+    "repo": "davehenke/rekordbox-mcp",
+    "path": "tests/test_database.py",
+    "revision": "d8dce67700911b6bef84b25c5f93ae07f200a1c5",
+    "source_url": "https://raw.githubusercontent.com/davehenke/rekordbox-mcp/d8dce67700911b6bef84b25c5f93ae07f200a1c5/tests/test_database.py",
+    "local_path": "upstream/davehenke__rekordbox-mcp/tests/test_database.py",
+    "sha256": "ed73f4d74ee7596dde88c4aeb067c4f967a2185b50246060291c7472eef41974",
+    "license": "MIT"
+  },
+  {
+    "repo": "davehenke/rekordbox-mcp",
+    "path": "tests/test_server.py",
+    "revision": "d8dce67700911b6bef84b25c5f93ae07f200a1c5",
+    "source_url": "https://raw.githubusercontent.com/davehenke/rekordbox-mcp/d8dce67700911b6bef84b25c5f93ae07f200a1c5/tests/test_server.py",
+    "local_path": "upstream/davehenke__rekordbox-mcp/tests/test_server.py",
+    "sha256": "ffc2215eb4ff5f208e6e5896bb41d9a8fa02ed3076510259af18585ec1f5f92f",
+    "license": "MIT"
+  },
+  {
+    "repo": "interfluve-wav/rekordbox-smart-mcp",
+    "path": "LICENSE",
+    "revision": "92e87d87ff012a21c21b0070b247e9498f04fda1",
+    "source_url": "https://raw.githubusercontent.com/interfluve-wav/rekordbox-smart-mcp/92e87d87ff012a21c21b0070b247e9498f04fda1/LICENSE",
+    "local_path": "upstream/interfluve-wav__rekordbox-smart-mcp/LICENSE",
+    "sha256": "d0268b7097541e5a6da35f7f29a0370e67cf537c3d9e92c6705602a8a98f85c6",
+    "license": "MIT"
+  },
+  {
+    "repo": "interfluve-wav/rekordbox-smart-mcp",
+    "path": "src/tools/setlist.ts",
+    "revision": "92e87d87ff012a21c21b0070b247e9498f04fda1",
+    "source_url": "https://raw.githubusercontent.com/interfluve-wav/rekordbox-smart-mcp/92e87d87ff012a21c21b0070b247e9498f04fda1/src/tools/setlist.ts",
+    "local_path": "upstream/interfluve-wav__rekordbox-smart-mcp/src/tools/setlist.ts",
+    "sha256": "2d35d38c23d56184f309dc75cbc225d5fe56aa8d57acaf69bc584587eacd732f",
+    "license": "MIT"
+  },
+  {
+    "repo": "interfluve-wav/rekordbox-smart-mcp",
+    "path": "src/tools/rekordbox.ts",
+    "revision": "92e87d87ff012a21c21b0070b247e9498f04fda1",
+    "source_url": "https://raw.githubusercontent.com/interfluve-wav/rekordbox-smart-mcp/92e87d87ff012a21c21b0070b247e9498f04fda1/src/tools/rekordbox.ts",
+    "local_path": "upstream/interfluve-wav__rekordbox-smart-mcp/src/tools/rekordbox.ts",
+    "sha256": "2f24410119f61b492750942d8f69580ae47231c05ca3d44290fc65d5586093db",
+    "license": "MIT"
+  },
+  {
+    "repo": "interfluve-wav/rekordbox-smart-mcp",
+    "path": "src/tools/audit.ts",
+    "revision": "92e87d87ff012a21c21b0070b247e9498f04fda1",
+    "source_url": "https://raw.githubusercontent.com/interfluve-wav/rekordbox-smart-mcp/92e87d87ff012a21c21b0070b247e9498f04fda1/src/tools/audit.ts",
+    "local_path": "upstream/interfluve-wav__rekordbox-smart-mcp/src/tools/audit.ts",
+    "sha256": "daf5290049a467a746e66c200b9ff773397a6df568a1bca28479c99e2add572b",
+    "license": "MIT"
+  },
+  {
+    "repo": "interfluve-wav/rekordbox-smart-mcp",
+    "path": "src/services/rekordboxHistory.ts",
+    "revision": "92e87d87ff012a21c21b0070b247e9498f04fda1",
+    "source_url": "https://raw.githubusercontent.com/interfluve-wav/rekordbox-smart-mcp/92e87d87ff012a21c21b0070b247e9498f04fda1/src/services/rekordboxHistory.ts",
+    "local_path": "upstream/interfluve-wav__rekordbox-smart-mcp/src/services/rekordboxHistory.ts",
+    "sha256": "35681e8b4f7d3c30180304247cf98e5aca0bb52eb3f7852aaf7f3721c6ef39be",
+    "license": "MIT"
+  },
+  {
+    "repo": "interfluve-wav/rekordbox-smart-mcp",
+    "path": "src/services/xmlParser.ts",
+    "revision": "92e87d87ff012a21c21b0070b247e9498f04fda1",
+    "source_url": "https://raw.githubusercontent.com/interfluve-wav/rekordbox-smart-mcp/92e87d87ff012a21c21b0070b247e9498f04fda1/src/services/xmlParser.ts",
+    "local_path": "upstream/interfluve-wav__rekordbox-smart-mcp/src/services/xmlParser.ts",
+    "sha256": "f369ab6891afd243cc72b6da7ebdb00fd1af5193d291ebe536f1d9b4a973a05a",
+    "license": "MIT"
+  },
+  {
+    "repo": "y08416/rekordbox-mcp",
+    "path": "LICENSE",
+    "revision": "2bb35094894a92b25e22a7d4ffc2e3100989cbe9",
+    "source_url": "https://raw.githubusercontent.com/y08416/rekordbox-mcp/2bb35094894a92b25e22a7d4ffc2e3100989cbe9/LICENSE",
+    "local_path": "upstream/y08416__rekordbox-mcp/LICENSE",
+    "sha256": "e5144589175f8ba15887d9da427f4b525d7008143baee51928cc7ea04fe4a332",
+    "license": "MIT"
+  },
+  {
+    "repo": "y08416/rekordbox-mcp",
+    "path": "README.md",
+    "revision": "2bb35094894a92b25e22a7d4ffc2e3100989cbe9",
+    "source_url": "https://raw.githubusercontent.com/y08416/rekordbox-mcp/2bb35094894a92b25e22a7d4ffc2e3100989cbe9/README.md",
+    "local_path": "upstream/y08416__rekordbox-mcp/README.md",
+    "sha256": "15954617c427e1f91fbd3a726531ec0c2e9a5e871d132c4634f8facae207bc8c",
+    "license": "MIT"
+  },
+  {
+    "repo": "y08416/rekordbox-mcp",
+    "path": "server.py",
+    "revision": "2bb35094894a92b25e22a7d4ffc2e3100989cbe9",
+    "source_url": "https://raw.githubusercontent.com/y08416/rekordbox-mcp/2bb35094894a92b25e22a7d4ffc2e3100989cbe9/server.py",
+    "local_path": "upstream/y08416__rekordbox-mcp/server.py",
+    "sha256": "32b6a092b3c01b88c959732b9db612e57ba4a8d51a93930a1bbf135622efa416",
+    "license": "MIT"
+  },
+  {
+    "repo": "kbooz/rekordbox-mcp-external-device",
+    "path": "LICENSE",
+    "revision": "b96a7c744db906d42d85236b397b77f17f8140e6",
+    "source_url": "https://raw.githubusercontent.com/kbooz/rekordbox-mcp-external-device/b96a7c744db906d42d85236b397b77f17f8140e6/LICENSE",
+    "local_path": "upstream/kbooz__rekordbox-mcp-external-device/LICENSE",
+    "sha256": "44236341a58e4c916202b08defcc2810f55ba2ccbdf7c1e409e4bb1e63f81582",
+    "license": "MIT"
+  },
+  {
+    "repo": "kbooz/rekordbox-mcp-external-device",
+    "path": "README.md",
+    "revision": "b96a7c744db906d42d85236b397b77f17f8140e6",
+    "source_url": "https://raw.githubusercontent.com/kbooz/rekordbox-mcp-external-device/b96a7c744db906d42d85236b397b77f17f8140e6/README.md",
+    "local_path": "upstream/kbooz__rekordbox-mcp-external-device/README.md",
+    "sha256": "e1eec2966f7e7a280c8caae95cdb94520f40f58940ebb3e39beef0222bd4167f",
+    "license": "MIT"
+  },
+  {
+    "repo": "kbooz/rekordbox-mcp-external-device",
+    "path": "rekordbox_mcp/device.py",
+    "revision": "b96a7c744db906d42d85236b397b77f17f8140e6",
+    "source_url": "https://raw.githubusercontent.com/kbooz/rekordbox-mcp-external-device/b96a7c744db906d42d85236b397b77f17f8140e6/rekordbox_mcp/device.py",
+    "local_path": "upstream/kbooz__rekordbox-mcp-external-device/rekordbox_mcp/device.py",
+    "sha256": "e38de607d8659f771c1168f001b87dbdabf78fdde5c247c970c7725b9df3c34f",
+    "license": "MIT"
+  },
+  {
+    "repo": "ryan-voitiskis/reklawdbox",
+    "path": "LICENSE",
+    "revision": "1f26d5352c75f88a96af0644c706bd955f37a779",
+    "source_url": "https://raw.githubusercontent.com/ryan-voitiskis/reklawdbox/1f26d5352c75f88a96af0644c706bd955f37a779/LICENSE",
+    "local_path": "upstream/ryan-voitiskis__reklawdbox/LICENSE",
+    "sha256": "e19d6df1e07204f4ab1271e1c00df89c8fac3e008f4fd937e974a1e3f7cea19f",
+    "license": "MIT"
+  },
+  {
+    "repo": "ryan-voitiskis/reklawdbox",
+    "path": "src/adapters/rekordbox/xml.rs",
+    "revision": "1f26d5352c75f88a96af0644c706bd955f37a779",
+    "source_url": "https://raw.githubusercontent.com/ryan-voitiskis/reklawdbox/1f26d5352c75f88a96af0644c706bd955f37a779/src/adapters/rekordbox/xml.rs",
+    "local_path": "upstream/ryan-voitiskis__reklawdbox/src/adapters/rekordbox/xml.rs",
+    "sha256": "38ba75175bce59f1c21f35b7d03cecc195258abfd17cd34df8f23ba9c2415426",
+    "license": "MIT"
+  },
+  {
+    "repo": "ryan-voitiskis/reklawdbox",
+    "path": "src/application/planning/transitions.rs",
+    "revision": "1f26d5352c75f88a96af0644c706bd955f37a779",
+    "source_url": "https://raw.githubusercontent.com/ryan-voitiskis/reklawdbox/1f26d5352c75f88a96af0644c706bd955f37a779/src/application/planning/transitions.rs",
+    "local_path": "upstream/ryan-voitiskis__reklawdbox/src/application/planning/transitions.rs",
+    "sha256": "d67a20dd9904d5d100dd73fc79eb802b0bcfb499dc7e57852df1e5bdc376c410",
+    "license": "MIT"
+  },
+  {
+    "repo": "ryan-voitiskis/reklawdbox",
+    "path": "src/README.md",
+    "revision": "1f26d5352c75f88a96af0644c706bd955f37a779",
+    "source_url": "https://raw.githubusercontent.com/ryan-voitiskis/reklawdbox/1f26d5352c75f88a96af0644c706bd955f37a779/src/README.md",
+    "local_path": "upstream/ryan-voitiskis__reklawdbox/src/README.md",
+    "sha256": "7147568cb94190d3bd05236e15bb78972dbd7618c5105887e9a9b03aacfe8687",
+    "license": "MIT"
+  },
+  {
+    "repo": "dylanljones/pyrekordbox",
+    "path": "LICENSE",
+    "revision": "f695541827cc488af267d6ca8a8e0052598d85a0",
+    "source_url": "https://raw.githubusercontent.com/dylanljones/pyrekordbox/f695541827cc488af267d6ca8a8e0052598d85a0/LICENSE",
+    "local_path": "upstream/dylanljones__pyrekordbox/LICENSE",
+    "sha256": "b74df6c7684cbd10a4a9f93ed2e638452b08ddbe77d89e6276ad3bcaf401a04a",
+    "license": "MIT"
+  },
+  {
+    "repo": "dylanljones/pyrekordbox",
+    "path": "README.md",
+    "revision": "f695541827cc488af267d6ca8a8e0052598d85a0",
+    "source_url": "https://raw.githubusercontent.com/dylanljones/pyrekordbox/f695541827cc488af267d6ca8a8e0052598d85a0/README.md",
+    "local_path": "upstream/dylanljones__pyrekordbox/README.md",
+    "sha256": "97815d6a582d65cc61dcab8a2f136ad1d5b76515138d159037f46fee3cc58c55",
+    "license": "MIT"
+  },
+  {
+    "repo": "dylanljones/pyrekordbox",
+    "path": "pyproject.toml",
+    "revision": "f695541827cc488af267d6ca8a8e0052598d85a0",
+    "source_url": "https://raw.githubusercontent.com/dylanljones/pyrekordbox/f695541827cc488af267d6ca8a8e0052598d85a0/pyproject.toml",
+    "local_path": "upstream/dylanljones__pyrekordbox/pyproject.toml",
+    "sha256": "83e0d95d2cf793d7f42bda0e7abc53b00635d0daccd7f579608a37b2e9062862",
+    "license": "MIT"
+  },
+  {
+    "repo": "dylanljones/pyrekordbox",
+    "path": "pyrekordbox/masterdb/database.py",
+    "revision": "f695541827cc488af267d6ca8a8e0052598d85a0",
+    "source_url": "https://raw.githubusercontent.com/dylanljones/pyrekordbox/f695541827cc488af267d6ca8a8e0052598d85a0/pyrekordbox/masterdb/database.py",
+    "local_path": "upstream/dylanljones__pyrekordbox/pyrekordbox/masterdb/database.py",
+    "sha256": "7b1a256b3ddc5d6f65df6ec1cf238a9cb122450abd90988a8b24f4b155029fdd",
+    "license": "MIT"
+  },
+  {
+    "repo": "dylanljones/pyrekordbox",
+    "path": "pyrekordbox/masterdb/registry.py",
+    "revision": "f695541827cc488af267d6ca8a8e0052598d85a0",
+    "source_url": "https://raw.githubusercontent.com/dylanljones/pyrekordbox/f695541827cc488af267d6ca8a8e0052598d85a0/pyrekordbox/masterdb/registry.py",
+    "local_path": "upstream/dylanljones__pyrekordbox/pyrekordbox/masterdb/registry.py",
+    "sha256": "571244565c0cd7c0d2f245b5a07de98041cea323e0382208a0e238846ba84240",
+    "license": "MIT"
+  }
+]

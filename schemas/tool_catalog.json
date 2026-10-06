@@ -1,0 +1,288 @@
+{
+  "schema_version": "0.2",
+  "states": [
+    "any",
+    "open",
+    "closed",
+    "unsupported"
+  ],
+  "source_notes": "13 herramientas MCP implementadas y probadas por stdio; estado de superficies explícito. El proveedor de pista audible y escritura nativa no están disponibles.",
+  "tools": [
+    {
+      "name": "system.status",
+      "state": "any",
+      "read_only": true,
+      "phase": 1,
+      "prototype": true,
+      "mcp_registered": true,
+      "status": "implemented"
+    },
+    {
+      "name": "playlist.list",
+      "state": "any",
+      "read_only": true,
+      "phase": 1,
+      "prototype": true,
+      "requires": [
+        "snapshot"
+      ],
+      "mcp_registered": true,
+      "status": "implemented"
+    },
+    {
+      "name": "library.search",
+      "state": "any",
+      "read_only": true,
+      "phase": 1,
+      "prototype": true,
+      "requires": [
+        "snapshot"
+      ],
+      "mcp_registered": true,
+      "status": "implemented"
+    },
+    {
+      "name": "playlist.plan",
+      "state": "any",
+      "read_only": true,
+      "phase": 1,
+      "prototype": true,
+      "requires": [
+        "snapshot",
+        "valid_metadata"
+      ],
+      "mcp_registered": true,
+      "status": "implemented"
+    },
+    {
+      "name": "playlist.export_xml",
+      "state": "any",
+      "read_only": false,
+      "confirmation": true,
+      "phase": 1,
+      "prototype": true,
+      "requires": [
+        "snapshot",
+        "matching_source_revision",
+        "non_existing_target_path",
+        "explicit_export_request"
+      ],
+      "mcp_registered": true,
+      "status": "implemented"
+    },
+    {
+      "name": "playlist.compare",
+      "state": "any",
+      "read_only": true,
+      "phase": 2,
+      "prototype": true,
+      "requires": [
+        "snapshot"
+      ],
+      "mcp_registered": true,
+      "status": "implemented"
+    },
+    {
+      "name": "library.duplicates",
+      "state": "any",
+      "read_only": true,
+      "phase": 2,
+      "prototype": true,
+      "requires": [
+        "snapshot"
+      ],
+      "mcp_registered": true,
+      "status": "implemented"
+    },
+    {
+      "name": "library.audit",
+      "state": "any",
+      "read_only": true,
+      "phase": 2,
+      "prototype": true,
+      "requires": [
+        "snapshot"
+      ],
+      "mcp_registered": true,
+      "status": "implemented"
+    },
+    {
+      "name": "library.diff",
+      "state": "any",
+      "read_only": true,
+      "phase": 2,
+      "prototype": true,
+      "requires": [
+        "two_snapshots"
+      ],
+      "mcp_registered": true,
+      "status": "implemented"
+    },
+    {
+      "name": "track.describe",
+      "state": "any",
+      "read_only": true,
+      "phase": 1,
+      "prototype": true,
+      "requires": [
+        "snapshot"
+      ],
+      "mcp_registered": true,
+      "status": "implemented"
+    },
+    {
+      "name": "transition.explain",
+      "state": "any",
+      "read_only": true,
+      "phase": 1,
+      "prototype": true,
+      "requires": [
+        "snapshot"
+      ],
+      "mcp_registered": true,
+      "status": "implemented"
+    },
+    {
+      "name": "setlist.audit",
+      "state": "any",
+      "read_only": true,
+      "phase": 2,
+      "prototype": true,
+      "requires": [
+        "plan"
+      ],
+      "mcp_registered": true,
+      "status": "implemented"
+    },
+    {
+      "name": "setlist.branch",
+      "state": "any",
+      "read_only": true,
+      "phase": 2,
+      "prototype": false,
+      "requires": [
+        "plan"
+      ],
+      "mcp_registered": false,
+      "status": "unavailable"
+    },
+    {
+      "name": "setlist.export_report",
+      "state": "any",
+      "read_only": false,
+      "confirmation": true,
+      "phase": 2,
+      "prototype": false,
+      "requires": [
+        "plan"
+      ],
+      "mcp_registered": false,
+      "status": "unavailable"
+    },
+    {
+      "name": "history.exclude_recent",
+      "state": "any",
+      "read_only": true,
+      "phase": 2,
+      "prototype": false,
+      "requires": [
+        "available_history"
+      ],
+      "mcp_registered": false,
+      "status": "unavailable"
+    },
+    {
+      "name": "recommend.manual",
+      "state": "any",
+      "read_only": true,
+      "phase": 2,
+      "prototype": true,
+      "requires": [
+        "snapshot",
+        "manual_track_id"
+      ],
+      "mcp_registered": true,
+      "status": "implemented"
+    },
+    {
+      "name": "recommend.explain",
+      "state": "any",
+      "read_only": true,
+      "phase": 2,
+      "prototype": false,
+      "requires": [
+        "plan"
+      ],
+      "mcp_registered": false,
+      "status": "unavailable"
+    },
+    {
+      "name": "notification.configure",
+      "state": "any",
+      "read_only": false,
+      "confirmation": true,
+      "phase": 2,
+      "prototype": false,
+      "requires": [],
+      "mcp_registered": false,
+      "status": "desktop_only"
+    },
+    {
+      "name": "audio.analyze_local",
+      "state": "any",
+      "read_only": true,
+      "confirmation": true,
+      "phase": 2,
+      "prototype": false,
+      "requires": [
+        "local_audio",
+        "idle_resources"
+      ],
+      "mcp_registered": false,
+      "status": "unavailable"
+    },
+    {
+      "name": "recommend.live",
+      "state": "open",
+      "read_only": true,
+      "phase": 3,
+      "prototype": false,
+      "requires": [
+        "snapshot",
+        "fresh_audible_now_playing",
+        "opt_in"
+      ],
+      "mcp_registered": false,
+      "status": "unavailable"
+    },
+    {
+      "name": "playlist.apply_native",
+      "state": "closed",
+      "read_only": false,
+      "confirmation": true,
+      "phase": 4,
+      "prototype": false,
+      "requires": [
+        "certified_adapter",
+        "verified_backup",
+        "unchanged_revision"
+      ],
+      "mcp_registered": false,
+      "status": "unavailable"
+    },
+    {
+      "name": "device.export",
+      "state": "unsupported",
+      "read_only": false,
+      "confirmation": true,
+      "phase": 5,
+      "prototype": false,
+      "requires": [
+        "device_not_in_use",
+        "certified_adapter"
+      ],
+      "mcp_registered": false,
+      "status": "unavailable"
+    }
+  ]
+}
