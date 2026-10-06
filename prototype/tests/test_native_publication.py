@@ -14,7 +14,7 @@ from egobits.core.models import PlanningError
 class PublicationTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
-        self.root=Path(self.temp.name);self.db=self.root/'master.db'
+        self.root=Path(self.temp.name).resolve();self.db=self.root/'master.db'
         self.names=('master.db','masterPlaylists6.xml')
         for name in self.names: (self.root/name).write_bytes(b'original-'+name.encode())
         self.writer=NativePlaylistWriter(self.root/'ops',lambda:'closed',lambda:{'databases':[str(self.db)],'installations':[{'version':'7.2.19'}]})
