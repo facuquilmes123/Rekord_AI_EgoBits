@@ -10,21 +10,39 @@ from urllib.parse import quote, urlsplit
 from ..core.models import Track, PlanningError
 from ..core.planner import normalize_key, number
 
+XML_LIMIT_BYTES=256*1024*1024
+
+
+class _XmlReader:
+    def __init__(self,stream):
+        self.stream=stream;self.checksum=hashlib.sha256();self.size=0;self.tail=b''
+
+    def read(self,size=65536):
+        chunk=self.stream.read(min(size,65536) if size>=0 else 65536)
+        self.size+=len(chunk)
+        if self.size>XML_LIMIT_BYTES:raise PlanningError('XML demasiado grande (máximo 256 MiB)')
+        if b'\x00' in chunk:raise PlanningError('El XML debe estar codificado en UTF-8')
+        inspected=(self.tail+chunk).upper()
+        if b'<!DOCTYPE' in inspected or b'<!ENTITY' in inspected:
+            raise PlanningError('DTD y entidades externas no admitidas')
+        self.tail=inspected[-16:];self.checksum.update(chunk)
+        return chunk
+
+
 class Library:
     """Representación inmutable en memoria de una instantánea XML de Rekordbox."""
     def __init__(self, source: Path, energies: dict[str, dict[str, Any]] | None = None):
         self.source = source.resolve()
-        raw = self.source.read_bytes()
-        # Evitar que una DTD UTF-16/32 eluda la inspección de bytes ASCII.
-        if b'\x00' in raw:
-            raise PlanningError('El XML debe estar codificado en UTF-8')
-        if len(raw) > 100 * 1024 * 1024:
-            raise PlanningError('XML demasiado grande para este prototipo (máximo 100 MB)')
-        if b'<!DOCTYPE' in raw.upper() or b'<!ENTITY' in raw.upper():
-            raise PlanningError('DTD y entidades externas no admitidas')
-        self.revision = hashlib.sha256(raw).hexdigest()
+        before=self.source.stat()
+        if before.st_size>XML_LIMIT_BYTES:raise PlanningError('XML demasiado grande (máximo 256 MiB)')
         try:
-            self.root = ET.fromstring(raw)
+            with self.source.open('rb') as stream:
+                reader=_XmlReader(stream)
+                self.root=ET.parse(reader).getroot()
+                self.revision=reader.checksum.hexdigest()
+            after=self.source.stat()
+            if (before.st_ino,before.st_size,before.st_mtime_ns)!=(after.st_ino,after.st_size,after.st_mtime_ns):
+                raise PlanningError('El XML cambió durante la carga; volvé a cargarlo')
         except ET.ParseError as e:
             raise PlanningError(f'XML malformado: {e}')
         if self.root.tag != 'DJ_PLAYLISTS':
@@ -143,7 +161,7 @@ def export_xml(lib: Library, result: dict[str, Any], name: str, target: Path) ->
             raise PlanningError('Location contiene un escape URI inválido')
 
     root = ET.Element('DJ_PLAYLISTS', Version='1.0.0')
-    ET.SubElement(root, 'PRODUCT', Name='Rekord AI', Version='0.3.11', Company='EgoBits')
+    ET.SubElement(root, 'PRODUCT', Name='Rekord AI', Version='0.3.12', Company='EgoBits')
     collection = ET.SubElement(root, 'COLLECTION', Entries=str(len(ids)))
     for tid in ids:
         track_node = copy.deepcopy(lib.nodes[tid])

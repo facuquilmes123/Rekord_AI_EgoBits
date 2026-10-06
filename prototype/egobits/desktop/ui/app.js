@@ -459,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
     duplicateCancel.hidden = !running;
     duplicateCancel.disabled = false;
     const labels = {running:'Leyendo archivos', complete:'Análisis terminado', cancelled:'Análisis cancelado', stale:'Análisis desactualizado', failed:'Error de análisis'};
-    duplicateProgress.textContent = `${labels[data.state] || data.state}: ${data.processed}/${data.total} referencias · ${data.hashed_files} archivos leídos completos · ${(data.bytes_read / 1024**3).toFixed(2)} GiB · ${data.unavailable.length} no verificables. ${data.error || ''}`;
+    duplicateProgress.textContent = `${labels[data.state] || data.state}: ${data.phase || "Comparando"} · ${data.processed}/${data.total} referencias · ${data.skipped_unique_size || 0} archivos con tamaño único · ${data.hashed_files} archivos leídos completos · ${(data.bytes_read / 1024**3).toFixed(2)} GiB · ${data.unavailable.length} no verificables. ${data.error || ''}`;
     document.getElementById('duplicate-rule').hidden = data.state !== 'complete';
     if (running) return;
     if (duplicateTimer) { clearTimeout(duplicateTimer); duplicateTimer = null; }
@@ -682,11 +682,15 @@ document.addEventListener('DOMContentLoaded', () => {
   loadInitialData();
   loadSettings().catch(error=>console.warn(error.message));
   let refreshing=false;
-  setInterval(async()=>{
-    if(refreshing) return;
-    refreshing=true;
-    try { const response=await apiFetch('/api/status'); if(response.ok) showStatus(await response.json()); }
-    catch(error) { document.getElementById('runtime-status').textContent='Servicio local no disponible'; }
-    finally { refreshing=false; }
-  },5000);
+  function pollStatus() {
+    setInterval(async()=>{
+      if(refreshing || document.hidden)return;
+      refreshing=true;
+      try {const response=await apiFetch('/api/status');if(response.ok)showStatus(await response.json());}
+      catch(error){document.getElementById('runtime-status').textContent='Servicio local no disponible';}
+      finally{refreshing=false;}
+    },5000);
+  }
+  if(window.__TAURI__)window.__TAURI__.event.listen('backend-status',event=>showStatus(event.payload)).catch(()=>pollStatus());
+  else pollStatus();
 });

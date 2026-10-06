@@ -1,6 +1,7 @@
 """One cancellable, local full-library scan. Scores are evidence, not probability.
 
-Every available audio file is hashed in full, including differently named tracks.
+Every reference is inventoried. Size/prefix exclude impossible matches; confirmed
+groups always use full SHA-256, including differently named tracks.
 No metadata score authorizes deletion. The rule returns a reviewable proposal only.
 """
 from collections import Counter, defaultdict
@@ -45,8 +46,10 @@ class DuplicateScan:
                 raise PlanningError('El XML cambió; recargá la colección.')
             self.cancelled = threading.Event()
             self.result = {'scan_id': secrets.token_hex(16), 'source_revision': lib.revision,
-                           'state': 'running', 'phase': 'Archivos', 'total': len(lib.tracks),
+                           'state': 'running', 'phase': 'Inventario', 'total': len(lib.tracks),
                            'processed': 0, 'hashed_files': 0, 'bytes_read': 0,
+                           'sampled_files':0,'skipped_unique_size':0,'skipped_prefix':0,
+                           'algorithm':'size_prefix_full_v1',
                            'unavailable': [], 'groups': [], 'entries': {}}
             threading.Thread(target=self._run, args=(lib,), daemon=True).start()
             return self.snapshot()
@@ -64,50 +67,95 @@ class DuplicateScan:
             self.cancelled.set()
             return self.snapshot()
 
+    def _read_file(self, entry, *, prefix=False):
+        path=Path(entry['path']);stamp=entry['stamp'];checksum=hashlib.sha256()
+        with path.open('rb') as stream:
+            if fingerprint(os.fstat(stream.fileno()))!=stamp:
+                raise OSError('El archivo cambió antes de leerlo.')
+            remaining=65536 if prefix else None
+            while remaining is None or remaining>0:
+                if self.cancelled.is_set():raise InterruptedError('Cancelado.')
+                chunk=stream.read(min(1024*1024,remaining) if remaining is not None else 1024*1024)
+                if not chunk:break
+                checksum.update(chunk)
+                with self.lock:self.result['bytes_read']+=len(chunk)
+                if remaining is not None:remaining-=len(chunk)
+            if fingerprint(os.fstat(stream.fileno()))!=stamp:
+                raise OSError('El archivo cambió durante la lectura.')
+        if fingerprint(path.stat())!=stamp:
+            raise OSError('El archivo cambió durante la lectura.')
+        return checksum.hexdigest()
+
     def _run(self, lib):
-        entries, content, names, cache = {}, defaultdict(list), defaultdict(list), {}
+        entries,content,names={},defaultdict(list),defaultdict(list)
+        files,sizes,prefixes={},defaultdict(list),defaultdict(list)
+        def unavailable(entry,error):
+            entry['error']=str(error);entry.pop('sha256',None)
+            with self.lock:self.result['unavailable'].append({'id':entry['id'],'reason':str(error)})
         try:
-            for tid, track in lib.tracks.items():
-                if self.cancelled.is_set(): break
-                entry = {'id': tid, 'title': track.title, 'artist': track.artist,
-                         'cues_sha256': cue_hash(lib, tid)}
+            # Inventory every reference. Unique byte sizes cannot be identical files.
+            for tid,track in lib.tracks.items():
+                if self.cancelled.is_set():break
+                entry={'id':tid,'title':track.title,'artist':track.artist,'cues_sha256':cue_hash(lib,tid)}
+                entries[tid]=entry
                 try:
-                    path = local_path(track.location).resolve(strict=True)
+                    path=local_path(track.location).resolve(strict=True)
                     if not path.is_file() or path.suffix.lower() not in AUDIO_SUFFIXES:
                         raise OSError('No es un archivo de audio local compatible.')
-                    before = path.stat()
-                    if before.st_size == 0: raise OSError('Archivo vacío.')
-                    stamp = fingerprint(before)
-                    key = (str(path).casefold(), stamp)
-                    sha = cache.get(key)
-                    if sha is None:
-                        checksum = hashlib.sha256()
-                        with path.open('rb') as stream:
-                            if fingerprint(os.fstat(stream.fileno())) != stamp:
-                                raise OSError('El archivo cambió antes de leerlo.')
-                            while chunk := stream.read(1024 * 1024):
-                                if self.cancelled.is_set(): raise InterruptedError('Cancelado.')
-                                checksum.update(chunk)
-                                with self.lock: self.result['bytes_read'] += len(chunk)
-                            if fingerprint(os.fstat(stream.fileno())) != stamp:
-                                raise OSError('El archivo cambió durante la lectura.')
-                        if fingerprint(path.stat()) != stamp:
-                            raise OSError('El archivo cambió durante la lectura.')
-                        sha = checksum.hexdigest()
-                        cache[key] = sha
-                        with self.lock: self.result['hashed_files'] += 1
-                    entry.update(path=str(path), bytes=before.st_size, sha256=sha, stamp=stamp)
-                    content[sha].append(tid)
-                except InterruptedError:
-                    break
-                except (OSError, ValueError) as error:
-                    entry['error'] = str(error)
-                    with self.lock: self.result['unavailable'].append({'id': tid, 'reason': str(error)})
-                entries[tid] = entry
-                # Empty metadata must never turn an entire library into one candidate group.
-                name = (track.artist.strip().casefold(), track.title.strip().casefold())
-                if all(name): names[name].append(tid)
-                with self.lock: self.result['processed'] += 1
+                    before=path.stat()
+                    if before.st_size==0:raise OSError('Archivo vacío.')
+                    stamp=fingerprint(before);key=(str(path).casefold(),stamp)
+                    entry.update(path=str(path),bytes=before.st_size,stamp=stamp)
+                    if key not in files:files[key]=[];sizes[before.st_size].append(key)
+                    files[key].append(tid)
+                except (OSError,ValueError) as error:unavailable(entry,error)
+                name=(track.artist.strip().casefold(),track.title.strip().casefold())
+                if all(name):names[name].append(tid)
+                with self.lock:self.result['processed']+=1
+            candidates=[]
+            for keys in sizes.values():
+                if sum(len(files[key]) for key in keys)>1:candidates.extend(keys)
+            with self.lock:
+                self.result.update(phase='Comparación inicial',candidate_files=len(candidates),
+                                   skipped_unique_size=len(files)-len(candidates))
+            # A partial hash rejects candidates only; it never authorizes removal.
+            for key in candidates:
+                if self.cancelled.is_set():break
+                entry=entries[files[key][0]]
+                try:
+                    sha=self._read_file(entry,prefix=True)
+                    with self.lock:self.result['sampled_files']+=1
+                    if entry['bytes']<=65536:
+                        for tid in files[key]:entries[tid]['sha256']=sha
+                        with self.lock:self.result['hashed_files']+=1
+                    else:prefixes[(entry['bytes'],sha)].append(key)
+                except InterruptedError:break
+                except (OSError,ValueError) as error:
+                    for tid in files[key]:unavailable(entries[tid],error)
+            with self.lock:self.result['phase']='Verificando coincidencias'
+            for keys in prefixes.values():
+                if self.cancelled.is_set():break
+                if sum(len(files[key]) for key in keys)<2:
+                    with self.lock:self.result['skipped_prefix']+=len(keys)
+                    continue
+                for key in keys:
+                    if self.cancelled.is_set():break
+                    try:
+                        sha=self._read_file(entries[files[key][0]])
+                        for tid in files[key]:entries[tid]['sha256']=sha
+                        with self.lock:self.result['hashed_files']+=1
+                    except InterruptedError:break
+                    except (OSError,ValueError) as error:
+                        for tid in files[key]:unavailable(entries[tid],error)
+            # Recheck inventory identities, including files skipped without reads.
+            for tid,entry in entries.items():
+                if self.cancelled.is_set():break
+                if entry.get('error') or 'path' not in entry:continue
+                try:
+                    if fingerprint(Path(entry['path']).stat())!=entry['stamp']:
+                        raise OSError('El archivo cambió después del inventario. Repetí la verificación.')
+                    if entry.get('sha256'):content[entry['sha256']].append(tid)
+                except OSError as error:unavailable(entry,error)
             groups = []
             confirmed_ids = set()
             for sha, ids in content.items():

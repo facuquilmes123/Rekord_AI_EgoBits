@@ -41,7 +41,8 @@ class AiIntentsTests(unittest.TestCase):
         text = "Buscar temas de Tech House"
         intent = parse_natural_language_intent(text)
         self.assertIsInstance(intent, SearchTracksIntent)
-        self.assertEqual(intent.query, 'tech house')
+        self.assertEqual(intent.query, '')
+        self.assertEqual(intent.genre, 'tech house')
 
     def test_parse_explain_transition_intent(self):
         text = "Explicar transición entre 1 y 2"

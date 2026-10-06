@@ -36,6 +36,20 @@ class NativeGatesTests(unittest.TestCase):
 
 
 class HistoryTests(unittest.TestCase):
+    def test_ranking_reused_only_for_same_reference_and_options(self):
+        from egobits.core.recommender import recommend,RecommendationOptions
+        lib=Library(Path(__file__).resolve().parents[1]/'examples/library.xml')
+        observer=HistoryObserver(lambda:{'databases':['test.db']},lambda:'open')
+        fake=MagicMock();fake.__enter__.return_value=fake
+        fake.execute.return_value.fetchall.return_value=[('old','1','t','C:/Music/Amanecer & Groove.mp3')]
+        with patch('egobits.telemetry.history.connection',return_value=fake),patch('egobits.telemetry.history.recommend',wraps=recommend) as ranking:
+            first=observer.poll(lib,use_last_registered=True);first['recommendations'].clear()
+            second=observer.poll(lib,use_last_registered=True)
+            self.assertTrue(second['recommendations']);self.assertEqual(ranking.call_count,1)
+            observer.poll(lib,RecommendationOptions(harmonic=False),use_last_registered=True)
+            self.assertEqual(ranking.call_count,2)
+            observer.ranking_at-=6;observer.poll(lib,RecommendationOptions(harmonic=False),use_last_registered=True)
+            self.assertEqual(ranking.call_count,3)
     def test_explicit_last_registered_reference_is_not_live_and_does_not_expire_as_audio(self):
         lib=Library(Path(__file__).resolve().parents[1]/'examples/library.xml')
         observer=HistoryObserver(lambda:{'databases':['test.db']},lambda:'open')

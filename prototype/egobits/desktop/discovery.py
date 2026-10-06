@@ -4,6 +4,23 @@ import os
 import json
 import re
 import xml.etree.ElementTree as ET
+import copy
+import threading
+import time
+
+_CACHE_LOCK=threading.Lock()
+_CACHE=None
+_CACHE_AT=0.0
+
+
+def cached_discover(*, force=False):
+    """Background reads only. Native writes and process closure keep fresh discovery."""
+    global _CACHE,_CACHE_AT
+    with _CACHE_LOCK:
+        now=time.monotonic()
+        if force or _CACHE is None or now-_CACHE_AT>=60:
+            _CACHE=discover();_CACHE_AT=time.monotonic()
+        return copy.deepcopy(_CACHE)
 
 
 def discover(environ=None, registry=True):

@@ -1,9 +1,17 @@
 """Selección determinista configurable; no infiere metadatos ausentes."""
 from dataclasses import dataclass
+from collections import Counter
 import math
 from .models import Track, PlanningError
 from .planner import harmonic_score
 from .search import normalized_genre
+
+
+def compact_recommendation(result):
+    """Keep ranking evidence while bounding transport independent of library size."""
+    excluded=result.get('excluded',{})
+    return {**{k:v for k,v in result.items() if k!='excluded'},
+            'excluded_count':len(excluded),'excluded_reasons':dict(Counter(excluded.values()))}
 
 
 @dataclass(frozen=True)

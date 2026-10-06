@@ -54,15 +54,46 @@ class FullDuplicateScanTests(unittest.TestCase):
         return self.library([('1', name, b'identical', cue, 'música á uno.mp3'),
                              ('2', name, b'identical', cue, 'música dos.mp3')])
 
-    def test_every_file_hashed_even_without_shared_metadata(self):
+    def test_unique_sizes_require_no_audio_reads(self):
+        lib=self.library([(str(i),f'Tema {i}',b'a'*(i+1),0,f'{i}.mp3') for i in range(4)])
+        data=self.complete(lib)
+        self.assertEqual(data['processed'],4)
+        self.assertEqual(data['bytes_read'],0)
+        self.assertEqual(data['hashed_files'],0)
+
+    def test_matching_prefix_is_never_confirmation(self):
+        prefix=b'X'*65536
+        lib=self.library([('1','Tema',prefix+b'A',0,'a.mp3'),('2','Tema',prefix+b'B',0,'b.mp3')])
+        data=self.complete(lib)
+        self.assertFalse(any(group['confirmed'] for group in data['groups']))
+        self.assertEqual(data['hashed_files'],2)
+        self.assertEqual(self.scan.rule(lib,data['scan_id'],0)['selected'],[])
+
+    def test_distinct_large_prefixes_skip_full_reads(self):
+        lib=self.library([('1','Uno',b'A'*100000,0,'a.mp3'),('2','Dos',b'B'*100000,0,'b.mp3')])
+        data=self.complete(lib)
+        self.assertEqual(data['hashed_files'],0)
+        self.assertEqual(data['bytes_read'],2*65536)
+
+    def test_three_phase_results_match_full_hash_oracle(self):
+        payloads=[bytes([i])*70000+bytes([i+1])*i for i in range(1,12)]
+        payloads.extend([payloads[2],payloads[5],payloads[5]])
+        lib=self.library([(str(i),f'Tema {i}',data,0,f'{i}.mp3') for i,data in enumerate(payloads)])
+        expected={}
+        for i,data in enumerate(payloads):expected.setdefault(hashlib.sha256(data).hexdigest(),set()).add(str(i))
+        expected={sha:ids for sha,ids in expected.items() if len(ids)>1}
+        actual={g['group_id']:{t['id'] for t in g['tracks']} for g in self.complete(lib)['groups'] if g['confirmed']}
+        self.assertEqual(actual,expected)
+
+    def test_complete_inventory_finds_identical_audio_without_shared_metadata(self):
         lib = self.library([('1', 'Uno', b'identical', 0, 'a.mp3'),
                             ('2', 'Otro nombre', b'identical', 0, 'b.mp3'),
                             ('3', 'Diferente', b'unique', 0, 'c.mp3')])
         before = self.source.read_bytes()
         data = self.complete(lib)
         self.assertEqual(data['processed'], 3)
-        self.assertEqual(data['hashed_files'], 3)
-        self.assertEqual(data['bytes_read'], len(b'identical') * 2 + len(b'unique'))
+        self.assertEqual(data['hashed_files'], 2)
+        self.assertEqual(data['bytes_read'], len(b'identical') * 2)
         self.assertEqual(data['groups'][0]['score'], 100)
         self.assertEqual(len(data['groups']), 1)
         self.assertEqual(self.source.read_bytes(), before)
