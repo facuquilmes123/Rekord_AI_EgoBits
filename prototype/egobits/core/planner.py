@@ -1,6 +1,8 @@
 from __future__ import annotations
 import math
 import re
+import heapq
+from collections import Counter
 from typing import Any
 from .models import Track, PlanOptions, PlanningError
 
@@ -67,7 +69,7 @@ def plan(tracks: list[Track], opt: PlanOptions) -> dict[str, Any]:
         reason = None
         if t.bpm is None:
             reason = 'BPM desconocido'
-        elif opt.mode == 'energy' and t.energy is None:
+        elif opt.mode == 'energy' and (t.energy is None or not t.energy_source):
             reason = 'Energía desconocida'
         elif opt.harmonic and not t.key:
             reason = 'Tonalidad desconocida'
@@ -81,16 +83,19 @@ def plan(tracks: list[Track], opt: PlanOptions) -> dict[str, Any]:
 
     if len(valid) < opt.count:
         raise PlanningError(
-            f'Candidatos válidos insuficientes: {len(valid)}; pedidos: {opt.count}; exclusiones: {excluded}'
+            f'Candidatos válidos insuficientes: {len(valid)}; pedidos: {opt.count}; exclusiones: {dict(Counter(excluded.values()))}'
         )
-    if len(valid) > 1000:
-        raise PlanningError('Acotá el conjunto a 1000 pistas para este prototipo')
 
     def axis(t: Track) -> float:
         val = t.bpm if opt.mode == 'bpm' else t.energy
         return val if val is not None else 0.0
 
     valid.sort(key=lambda t: (axis(t), t.id))
+    candidate_total=len(valid)
+    if candidate_total>1000:
+        # Representative deterministic positions across the complete valid axis.
+        # This remains a bounded search and never relaxes a requested constraint.
+        valid=[valid[i*(candidate_total-1)//999] for i in range(1000)]
     lo, hi = axis(valid[0]), axis(valid[-1])
     span = max(hi - lo, 1.0)
     beams: list[tuple[float, tuple[Track, ...]]] = [(0.0, tuple())]
@@ -124,8 +129,7 @@ def plan(tracks: list[Track], opt: PlanOptions) -> dict[str, Any]:
             raise PlanningError(
                 'No se encontró una secuencia completa con esta búsqueda limitada; no se relajaron las restricciones. Ampliá el conjunto o cambiá una condición.'
             )
-        next_beams.sort(key=lambda x: (-x[0], tuple(t.id for t in x[1])))
-        beams = next_beams[:opt.beam_width]
+        beams = heapq.nsmallest(opt.beam_width,next_beams,key=lambda x: (-x[0], tuple(t.id for t in x[1])))
 
     score, chosen = beams[0]
     transitions = []
@@ -144,9 +148,10 @@ def plan(tracks: list[Track], opt: PlanOptions) -> dict[str, Any]:
         'score': round(score, 4),
         'transitions': transitions,
         'excluded': excluded,
-        'algorithm': 'bounded_beam_v1',
+        'algorithm': 'bounded_beam_v2',
+        'candidate_total':candidate_total,'candidate_count':len(valid),
         'duration_sum_seconds': sum(durations) if all(x is not None for x in durations) else None,
-        'warnings': [
+        'warnings': ([f'La colección tiene {candidate_total} candidatas válidas; se usó una preselección representativa de 1000. Una secuencia posible puede quedar fuera de esta búsqueda acotada.'] if candidate_total>1000 else []) + [
             'La duración suma pistas completas; no calcula solapamientos.',
             'La compatibilidad armónica es una regla de selección, no una garantía perceptual.'
         ],

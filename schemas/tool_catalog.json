@@ -6,7 +6,7 @@
     "closed",
     "unsupported"
   ],
-  "source_notes": "13 herramientas MCP implementadas y probadas por stdio; estado de superficies explícito. El proveedor de pista audible y escritura nativa no están disponibles.",
+  "source_notes": "13 herramientas MCP implementadas y probadas por stdio. La app Windows permite crear playlists y consolidar duplicados idénticos con cierre, respaldo y confirmación; esas escrituras no están expuestas al MCP ni al modelo. El master audible requiere un proveedor validado. El chat también permite resumir la colección, inspeccionar playlists y planificar desde toda la colección; library.summary y playlist.inspect son acciones del chat, no herramientas MCP registradas.",
   "tools": [
     {
       "name": "system.status",

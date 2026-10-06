@@ -5,7 +5,7 @@ from .intents import (
     PlanPlaylistIntent, SearchTracksIntent, ComparePlaylistsIntent, AuditLibraryIntent,
     ExplainTransitionIntent, RecommendManualIntent, RecommendLiveIntent, SystemStatusIntent,
     UnknownIntent, ListPlaylistsIntent, DuplicatesIntent, DescribeTrackIntent,
-    SimilarTracksIntent, MultiSearchIntent,
+    SimilarTracksIntent, MultiSearchIntent, CollectionSummaryIntent, InspectPlaylistIntent, AuditSetlistIntent,
 )
 from ..core.models import PlanningError, PlanOptions
 
@@ -13,9 +13,12 @@ TYPES = {kind().action: kind for kind in (
     PlanPlaylistIntent, SearchTracksIntent, ComparePlaylistsIntent, AuditLibraryIntent,
     ExplainTransitionIntent, RecommendManualIntent, RecommendLiveIntent, SystemStatusIntent,
     UnknownIntent, ListPlaylistsIntent, DuplicatesIntent, DescribeTrackIntent,
-    SimilarTracksIntent, MultiSearchIntent,
+    SimilarTracksIntent, MultiSearchIntent, CollectionSummaryIntent, InspectPlaylistIntent, AuditSetlistIntent,
 )}
 PARAMETERS = {
+    'source': {'type':'string','enum':['playlists','collection']},
+    'playlist': {'type':'string','maxLength':500},
+    'track_ids': {'type':'array','items':{'type':'string','maxLength':100},'minItems':1,'maxItems':1000},
     'playlists': {'type': 'array', 'items': {'type': 'string'}, 'maxItems': 20},
     'references': {'type': 'array', 'items': {'type': 'string', 'maxLength':160}, 'minItems':1, 'maxItems':5},
     'queries': {'type': 'array', 'items': {'type': 'string', 'maxLength':500}, 'minItems':1, 'maxItems':5},
@@ -32,7 +35,7 @@ PARAMETERS = {
     'limit': {'type': 'integer', 'minimum': 1, 'maximum': 100},
     'offset': {'type': 'integer', 'minimum': 0, 'maximum': 1000000},
 }
-REQUIRED_PARAMS = {'playlist.plan': ['playlists'], 'playlist.compare': ['playlist_a','playlist_b'],
+REQUIRED_PARAMS = {'playlist.plan': [], 'playlist.inspect':['playlist'], 'setlist.audit':['track_ids'], 'playlist.compare': ['playlist_a','playlist_b'],
                    'library.search': ['query'], 'track.describe': ['track_id'],
                    'transition.explain': ['track_a_id','track_b_id'],
                    'recommend.manual': ['current_track_id'], 'library.similar':['references'],
@@ -76,7 +79,7 @@ def intent_from_payload(payload, available_playlists):
                                     or value > spec.get('maximum', float('inf'))):
             raise PlanningError('Número de IA inválido')
     params = dict(params)
-    for key in ('playlists', 'references', 'queries'):
+    for key in ('playlists', 'references', 'queries','track_ids'):
         if key in params: params[key] = tuple(params[key])
     intent = kind(**params)
     if isinstance(intent, SearchTracksIntent):
@@ -89,11 +92,13 @@ def intent_from_payload(payload, available_playlists):
         if not intent.queries or any(not isinstance(parse_natural_language_intent(q, available_playlists), (SearchTracksIntent, SimilarTracksIntent)) for q in intent.queries):
             raise PlanningError('El lote sólo admite búsquedas y similitudes sin escrituras')
     if isinstance(intent, PlanPlaylistIntent):
-        if not intent.playlists or any(p not in available_playlists for p in intent.playlists):
+        if (intent.source=='playlists' and (not intent.playlists or any(p not in available_playlists for p in intent.playlists))) or (intent.source=='collection' and intent.playlists):
             raise PlanningError('La IA propuso playlists inexistentes o no eligió origen')
         PlanOptions(count=intent.count, mode=intent.mode, max_bpm_step=intent.max_bpm_step,
                     same_genre=intent.same_genre, harmonic=intent.harmonic,
                     avoid_adjacent_artist=intent.avoid_adjacent_artist)
+    if isinstance(intent, InspectPlaylistIntent) and intent.playlist not in available_playlists:
+        raise PlanningError('La IA propuso una playlist inexistente')
     if isinstance(intent, ComparePlaylistsIntent):
         if intent.playlist_a not in available_playlists or intent.playlist_b not in available_playlists:
             raise PlanningError('La IA propuso playlists inexistentes')

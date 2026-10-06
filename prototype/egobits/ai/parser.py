@@ -13,7 +13,7 @@ from .intents import (
     RecommendLiveIntent,
     SystemStatusIntent,
     UnknownIntent, ListPlaylistsIntent, DuplicatesIntent, DescribeTrackIntent,
-    SimilarTracksIntent, MultiSearchIntent,
+    SimilarTracksIntent, MultiSearchIntent, CollectionSummaryIntent, InspectPlaylistIntent, AuditSetlistIntent,
 )
 from ..core.models import PlanningError
 
@@ -134,6 +134,18 @@ def parse_natural_language_intent(text: str, available_playlists: list[str] | No
     if references:
         return UnknownIntent(reason='Para invocar una pista usá, por ejemplo: canciones similares en género y tonalidad a @id:123. Los nombres con espacios van entre comillas.')
 
+    if (re.search(r'\b(resum\w*|panorama|estadisticas)\b',plain) and re.search(r'coleccion|biblioteca',plain)) or re.search(r'cuantas\s+(?:pistas|canciones|playlists)\s+(?:tengo|hay)',plain):
+        return CollectionSummaryIntent()
+    if re.search(r'\b(revis\w*|audit\w*|inspeccion\w*|detalle\w*|analiz\w*)\b',plain) and re.search(r'\bplaylist\b',plain):
+        found=_matched_playlists(s,available_playlists or [])
+        if len(found)==1:return InspectPlaylistIntent(playlist=found[0])
+        return UnknownIntent(reason='Indicá una playlist por su ruta completa para revisar su orden.')
+    ids=re.search(r'\b(?:ids|pistas)\s+([0-9][0-9,\s]*)[.!?]?$',plain)
+    if ids and re.search(r'\b(?:audit\w*|revis\w*)\b.*\b(?:set|setlist|orden)\b',plain):
+        selected=tuple(re.findall(r'\d+',ids.group(1)))
+        if len(selected)>1000:return UnknownIntent(reason='La auditoría de orden admite hasta 1000 pistas.')
+        return AuditSetlistIntent(track_ids=selected)
+
     if any(k in s for k in ['duplicad', 'repetidos']):
         return DuplicatesIntent()
     if re.search(r'(listar|mostr[aá]|ver|cu[aá]les).*playlists', s):
@@ -182,14 +194,15 @@ def parse_natural_language_intent(text: str, available_playlists: list[str] | No
         query = m_search.group(1).strip()
         return _search_intent(query)
 
-    if not re.search(r'\b(recorr\w*|un[ií]|unir|combin\w*|cre[aá]\w*|gener\w*|planific\w*|orden\w*)\b', s):
+    if not re.search(r'\b(recorr\w*|un[ií]|unir|combin\w*|cre[aá]\w*|arm[aá]\w*|gener\w*|planific\w*|orden\w*)\b', s):
         return UnknownIntent()
 
     # Intención: Planificar playlist (recorrer, unir, crear)
     # Detectar playlists candidatas
     pls_found = _matched_playlists(s, available_playlists or [])
+    whole_collection=bool(re.search(r'\b(?:toda\s+(?:mi\s+|la\s+)?|desde\s+(?:mi\s+|la\s+)?)?(?:coleccion|biblioteca)\b',plain))
 
-    if not pls_found:
+    if not pls_found and not whole_collection:
         return UnknownIntent(reason='Indicá las playlists por su nombre o ruta; no voy a elegirlas por vos.')
     shorts = [p.split('/')[-1].casefold() for p in pls_found]
     if len(shorts) != len(set(shorts)) and not all(p.casefold() in s for p in pls_found):
@@ -224,5 +237,5 @@ def parse_natural_language_intent(text: str, available_playlists: list[str] | No
         max_bpm_step=max_bpm_step,
         same_genre=same_genre,
         avoid_adjacent_artist=avoid_artist,
-        out_name=out_name
+        out_name=out_name,source='collection' if whole_collection and not pls_found else 'playlists'
     )

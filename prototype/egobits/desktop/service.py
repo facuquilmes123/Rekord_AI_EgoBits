@@ -156,7 +156,7 @@ def status():
     capabilities = {name: vars(capability(name, State(state), snapshot=lib is not None,
                     manual_track_id=True, live_fresh=live.get('confirmed', False),
                     opt_in=settings['notifications']['enabled'])) for name in TOOL_NAMES}
-    return {'app': 'Rekord AI', 'version': '0.3.10', 'rekordbox_state': state,'native_process_state':native_state,
+    return {'app': 'Rekord AI', 'version': '0.3.11', 'rekordbox_state': state,'native_process_state':native_state,
             'snapshot_revision': lib.revision if lib else None,
             'source_path': str(lib.source) if lib else None, 'library_error': error,
             'demo': bool(lib and lib.source == (EXAMPLES_DIR / 'library.xml').resolve()),

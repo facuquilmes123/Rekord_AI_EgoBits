@@ -17,6 +17,16 @@ class PlanPlaylistIntent(Intent):
     harmonic: bool = True
     avoid_adjacent_artist: bool = True
     out_name: str = 'Nueva Selección'
+    source: Literal['playlists', 'collection'] = 'playlists'
+
+@dataclass(frozen=True)
+class CollectionSummaryIntent(Intent):
+    action: str = 'library.summary'
+
+@dataclass(frozen=True)
+class InspectPlaylistIntent(Intent):
+    action: str = 'playlist.inspect'
+    playlist: str = ''
 
 @dataclass(frozen=True)
 class SearchTracksIntent(Intent):
