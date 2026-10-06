@@ -1,7 +1,16 @@
 import unittest,tempfile,json
 from pathlib import Path
 from egobits.desktop.discovery import discover
+from egobits.desktop import discovery
+from unittest.mock import patch
 class DiscoveryTests(unittest.TestCase):
+ def test_background_cache_copy_expiry_and_explicit_rescan(self):
+  with patch.object(discovery,'_CACHE',None),patch.object(discovery,'_CACHE_AT',0),patch.object(discovery,'discover',return_value={'databases':['fixture.db']} ) as scan,patch.object(discovery.time,'monotonic',return_value=100):
+   first=discovery.cached_discover();first['databases'].clear()
+   self.assertEqual(discovery.cached_discover()['databases'],['fixture.db']);self.assertEqual(scan.call_count,1)
+   discovery.cached_discover(force=True);self.assertEqual(scan.call_count,2)
+   with patch.object(discovery.time,'monotonic',return_value=161):discovery.cached_discover()
+   self.assertEqual(scan.call_count,3)
  def test_missing(self):
   self.assertEqual(discover({},False)['installations'],[])
  def test_moved_and_future(self):

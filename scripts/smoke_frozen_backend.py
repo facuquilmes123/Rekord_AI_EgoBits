@@ -69,6 +69,14 @@ def main():
             report['checks']['chat_set_audit']=audited['setlist_audit']['track_count']==3 and not audited['applied']
             report['checks']['chat_collection_plan']=len(collection_plan['plan_result']['track_ids'])==4 and not collection_plan['applied']
             started=time.monotonic()
+            missing=request('/api/chat',{'query':'qué pistas no tienen género?'})
+            genre=request('/api/chat',{'query':'qué temas de tech house tengo?'})
+            report['direct_aliases_seconds']=round(time.monotonic()-started,3)
+            report['checks']['metadata_negation']=not missing['applied'] and missing['answer_mode']!='local_assistant'
+            report['checks']['informational_genre']=genre['intent']['action']=='library.search' and genre['intent']['genre']=='tech house'
+            compact=request('/api/recommend',{'current_track_id':'1'})
+            report['checks']['compact_recommendations']='excluded' not in compact and compact['excluded_count']==sum(compact['excluded_reasons'].values())
+            started=time.monotonic()
             conversation=request('/api/chat',{'query':'Como organizo un set para pasar de una apertura tranquila a un cierre intenso?'})
             report['conversation_seconds']=round(time.monotonic()-started,2)
             report['conversation']=conversation

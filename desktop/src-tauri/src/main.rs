@@ -70,10 +70,14 @@ async fn approve_native_operation(app:tauri::AppHandle,token:String,source_revis
 }
 
 #[tauri::command]
-fn drag_collection_track(app: tauri::AppHandle, state: tauri::State<'_, BackendState>, track_id:String, source_revision:String) -> Result<(),String> {
-    let result=local_request(&state,"POST","/api/track/drag-file",Some(&serde_json::json!({"track_id":track_id,"source_revision":source_revision})))
-        .ok_or("La pista no está disponible o la colección cambió")?;
-    let path=result["path"].as_str().ok_or("Ruta de colección inválida")?.to_owned();
+async fn drag_collection_track(app: tauri::AppHandle, track_id:String, source_revision:String) -> Result<(),String> {
+    let lookup=app.clone();
+    let path=tauri::async_runtime::spawn_blocking(move || {
+        let state=lookup.state::<BackendState>();
+        let result=local_request(&state,"POST","/api/track/drag-file",Some(&serde_json::json!({"track_id":track_id,"source_revision":source_revision})))
+            .ok_or("La pista no está disponible o la colección cambió")?;
+        result["path"].as_str().map(str::to_owned).ok_or("Ruta de colección inválida")
+    }).await.map_err(|_|"No se pudo preparar el arrastre".to_string())??;
     let feedback=app.clone();
     app.run_on_main_thread(move || {
         use tauri::Emitter;
@@ -215,6 +219,10 @@ fn main() {
                     match event.id().as_ref() {
                         "current" => {
                             if let Some(value)=local_get(&state,"/api/recommendation-popup") {
+                                if let Some(main)=handle.get_webview_window("main") {
+                                    use tauri::Emitter;
+                                    let _=main.emit("recommendation-delivery-update",&value);
+                                }
                                 if value["display"].as_bool()==Some(true) {
                                     if let Some(window)=handle.get_webview_window("recommendation") {
                                         use tauri::Emitter;
@@ -268,6 +276,10 @@ fn main() {
                     break;
                 }
                 let status = local_get(&state, "/api/status");
+                if let (Some(window),Some(value))=(handle.get_webview_window("main"),status.as_ref()) {
+                    use tauri::Emitter;
+                    let _=window.emit("backend-status",value);
+                }
                 let rb_state = status.as_ref()
                     .and_then(|json| json.get("rekordbox_state"))
                     .and_then(Value::as_str).unwrap_or("unknown");
@@ -282,6 +294,10 @@ fn main() {
                 let _ = push.set_text(if enabled { "Desactivar notificaciones" } else { "Activar notificaciones" });
                 if let Some(window)=handle.get_webview_window("recommendation") {
                     if let Some(value)=local_get(&state,"/api/recommendation-popup") {
+                        if let Some(main)=handle.get_webview_window("main") {
+                            use tauri::Emitter;
+                            let _=main.emit("recommendation-delivery-update",&value);
+                        }
                         let display=value["display"].as_bool().unwrap_or(false);
                         if !display { 
                             let _=window.hide();

@@ -246,13 +246,19 @@ document.addEventListener('DOMContentLoaded', () => {
   $('metadata-recommend-start').addEventListener('click',startMetadataRecommendations);
   $('live-action').addEventListener('click',()=>{api.openSettings('recommendation-delivery-state');refreshDelivery();});
   let deliveryBusy=false;
+  function showDelivery(data) {
+    $('recommendation-delivery-state').textContent=data.display ? `Popup disponible · ${data.source==='rekordbox_history'?'referencia del historial':'detección de audio'} · ${data.recommendations.length} sugerencias` : data.reason || 'No hay una referencia identificada.';
+  }
   async function refreshDelivery() {
     if(deliveryBusy)return;deliveryBusy=true;
-    try {const data=await read('/api/recommendation-popup');$('recommendation-delivery-state').textContent=data.display ? `Popup disponible · ${data.source==='rekordbox_history'?'referencia del historial':'detección de audio'} · ${data.recommendations.length} sugerencias` : data.reason || 'No hay una referencia identificada.';}
+    try {showDelivery(await read('/api/recommendation-popup'));}
     catch(error){$('recommendation-delivery-state').textContent=error.message;}
     finally{deliveryBusy=false;}
   }
-  refreshDelivery();setInterval(refreshDelivery,5000);
+  refreshDelivery();
+  const pollDelivery=()=>setInterval(()=>{if(!document.hidden)refreshDelivery();},5000);
+  if(window.__TAURI__)window.__TAURI__.event.listen('recommendation-delivery-update',event=>showDelivery(event.payload)).catch(()=>pollDelivery());
+  else pollDelivery();
   if(window.__TAURI__)window.__TAURI__.event.listen('recommendation-needs-setup',event=>{go('tab-config');api.notice(event.payload.reason || 'Revisá el seguimiento de recomendaciones.','info');api.openSettings('recommendation-delivery-state');}).catch(error=>api.notice(error.message,'error'));
   $('audio-signal').addEventListener('click',async()=>{
     if(!$('audio-device').value || !$('audio-consent').checked){api.notice('Elegí una salida y confirmá el análisis local.','error');return;}
@@ -262,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
     finally{$('audio-signal').disabled=false;}
   });
   setInterval(async()=>{
-    if (!$('history-monitor').checked || historyBusy) return;
+    if (document.hidden || !$('history-monitor').checked || historyBusy) return;
     historyBusy=true;
     try {
       const data=await read('/api/history-suggestion'); const root=$('history-suggestions');root.replaceChildren(text('p',data.reason,'hint'));

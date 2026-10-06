@@ -31,7 +31,7 @@ from ..core.mentions import mention_candidates, resolve_followup, extract_mentio
 from .live_suggestion import live_suggestion
 from .settings import SettingsStore
 from .tray_watcher import ProcessMonitor
-from .discovery import discover
+from .discovery import discover, cached_discover
 from ..adapters.sqlcipher_read import inspect as inspect_native
 from ..adapters.native_write import NativePlaylistWriter, digest
 from .process_close import RekordboxCloser
@@ -56,7 +56,7 @@ atexit.register(_AUDIO_WATCH.stop)
 _LIB_LOCK = threading.RLock()
 _SERVER = None
 _SETTINGS = SettingsStore()
-_HISTORY = HistoryObserver(discover, _MONITOR.check_state)
+_HISTORY = HistoryObserver(cached_discover, _MONITOR.check_state)
 _NATIVE = NativePlaylistWriter(Path(os.environ.get('LOCALAPPDATA', str(Path.home()))) / 'Rekord AI' / 'native-operations', _MONITOR.check_native_state, discover)
 _TRANSACTIONS = TransactionRecovery(_NATIVE.root, _MONITOR.check_native_state, discover, _NATIVE)
 _CLOSER = RekordboxCloser(discover, _MONITOR, _NATIVE)
@@ -156,7 +156,7 @@ def status():
     capabilities = {name: vars(capability(name, State(state), snapshot=lib is not None,
                     manual_track_id=True, live_fresh=live.get('confirmed', False),
                     opt_in=settings['notifications']['enabled'])) for name in TOOL_NAMES}
-    return {'app': 'Rekord AI', 'version': '0.3.11', 'rekordbox_state': state,'native_process_state':native_state,
+    return {'app': 'Rekord AI', 'version': '0.3.12', 'rekordbox_state': state,'native_process_state':native_state,
             'snapshot_revision': lib.revision if lib else None,
             'source_path': str(lib.source) if lib else None, 'library_error': error,
             'demo': bool(lib and lib.source == (EXAMPLES_DIR / 'library.xml').resolve()),
@@ -185,7 +185,7 @@ def local_llama_client():
                                            binary['sha256'], model['sha256'],
                                            [(root / row['path'], row['sha256']) for row in rows
                                             if row['path'].startswith('assets/bin/')])
-        atexit.register(_LLAMA_RUNTIME.stop)
+        atexit.register(_LLAMA_RUNTIME.close)
     _LLM_STATUS = {'state': 'loading', 'reason': 'Cargando modelo local'}
     client = _LLAMA_RUNTIME.start()
     return client
@@ -375,7 +375,7 @@ class EgoBitsRequestHandler(BaseHTTPRequestHandler):
             if path in ('/api/status', '/api/capabilities'):
                 self.send_json(status())
             elif path == '/api/discovery':
-                self.send_json(discover())
+                self.send_json(cached_discover(force=True))
             elif path == '/api/history-suggestion':
                 lib, _ = current_library()
                 settings=_SETTINGS.snapshot()
@@ -676,7 +676,8 @@ class EgoBitsRequestHandler(BaseHTTPRequestHandler):
                 current = lib.tracks.get(body.get('current_track_id'))
                 if current is None:
                     raise PlanningError('Seleccioná un ID de pista existente')
-                self.send_json(recommend(current, list(lib.tracks.values()), RecommendationOptions(**_SETTINGS.snapshot()['recommendation'])))
+                from ..core.recommender import compact_recommendation
+                self.send_json(compact_recommendation(recommend(current, list(lib.tracks.values()), RecommendationOptions(**_SETTINGS.snapshot()['recommendation']))))
             else:
                 self.send_error_json('Endpoint no encontrado', 404)
         except (OSError, ValueError, TypeError, KeyError, ImportError) as exc:

@@ -8,7 +8,7 @@ from ..ai.intents import (
 from ..core.models import PlanOptions, PlanningError
 from ..core.planner import plan
 from ..core.analysis import audit_library, audit_setlist, compare_playlists, explain_transition, find_duplicates
-from ..core.recommender import recommend, RecommendationOptions
+from ..core.recommender import recommend, RecommendationOptions, compact_recommendation
 from ..core.search import search_library
 from ..core.mentions import similar_tracks
 
@@ -161,7 +161,7 @@ def _execute_chat(intent, lib, state, recommendation=None, live=None):
             raise PlanningError('ID de pista inexistente')
         options = dict(recommendation or {})
         options['count'] = intent.count
-        suggestions = recommend(current, list(lib.tracks.values()), RecommendationOptions(**options))
+        suggestions = compact_recommendation(recommend(current, list(lib.tracks.values()), RecommendationOptions(**options)))
         return {**result, 'response': f'{len(suggestions["recommendations"])} candidatas compatibles.\n' + '\n'.join(f'ID {t["id"]}: {t["artist"]} — {t["title"]}' for t in suggestions['recommendations']), **suggestions}
     if isinstance(intent, RecommendLiveIntent):
         suggestion = live or {'confirmed': False, 'reason': 'Sin telemetría real validada'}

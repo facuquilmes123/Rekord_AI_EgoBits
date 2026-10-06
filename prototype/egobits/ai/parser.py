@@ -66,13 +66,6 @@ def _search_intent(query):
         if numeric_energy:
             params['energy_min'] = float(numeric_energy.group(1).replace(',', '.'))
             text = text[:numeric_energy.start()] + ' ' + text[numeric_energy.end():]
-    if not params:
-        return SearchTracksIntent(query=re.sub(r'^de\s+', '', query).strip())
-    # Remove request scaffolding, retaining artist/title text as a real filter.
-    text = re.sub(r'\b(?:en|de|dentro de)\s+(?:(?:mi|la)\s+)?(?:coleccion|biblioteca)\b', ' ', text)
-    text = re.sub(r'\b(?:una?|pistas?|tracks?|temas?|canciones?|con|y|de|del|genero)\b', ' ', text)
-    text = re.sub(r'\b(?:que|cuales|tengo|tenemos|hay|disponibles?|mi|la|coleccion|biblioteca)\b',' ',text)
-    text = ' '.join(text.split()).strip(' ,;?.')
     aliases = {'techhouse': 'tech house', 'techno': 'techno', 'house': 'house', 'deephouse': 'deep house',
                'progressivehouse': 'progressive house', 'melodictechno': 'melodic techno',
                'afrohouse': 'afro house', 'drumandbass': 'drum and bass', 'minimal': 'minimal'}
@@ -84,6 +77,13 @@ def _search_intent(query):
             params['genre'] = aliases[alias]
             text = (text[:match.start()] + ' ' + text[match.end():]).strip()
             break
+    if not params:
+        return SearchTracksIntent(query=re.sub(r'^de\s+', '', query).strip())
+    # Remove request scaffolding, retaining artist/title text as a real filter.
+    text = re.sub(r'\b(?:en|de|dentro de)\s+(?:(?:mi|la)\s+)?(?:coleccion|biblioteca)\b', ' ', text)
+    text = re.sub(r'\b(?:una?|pistas?|tracks?|temas?|canciones?|con|y|de|del|genero)\b', ' ', text)
+    text = re.sub(r'\b(?:que|cuales|tengo|tenemos|hay|disponibles?|mi|la|coleccion|biblioteca)\b',' ',text)
+    text = ' '.join(text.split()).strip(' ,;?.¿¡!')
     from ..core.search import validate_search
     intent = SearchTracksIntent(query=' '.join(text.split()), **params)
     try: validate_search(intent)
@@ -187,7 +187,7 @@ def parse_natural_language_intent(text: str, available_playlists: list[str] | No
         return UnknownIntent(reason='Indicá las dos playlists que querés comparar.')
 
     # Intención: Buscar pistas
-    if re.search(r'\b(?:que|qué|cuales|cuáles)\b',s) and re.search(r'\b(?:tengo|tenemos|hay)\b',s) and re.search(r'\d+(?:[.,]\d+)?\s*bpm\b',s):
+    if re.search(r'\b(?:que|qué|cuales|cuáles)\b',s) and re.search(r'\b(?:tengo|tenemos|hay)\b',s) and (re.search(r'\d+(?:[.,]\d+)?\s*bpm\b',s) or re.search(r'\b(?:pistas?|temas?|canciones?|tracks?)\b',s)):
         return _search_intent(s)
     m_search = re.search(r'(?:buscar?|busc[aá]|encontr[aá]r?|mostr[aá]r?|dame)(?:\s+(?:tracks?|pistas?|temas?|cancion(?:es)?))?(?:\s+de)?\s*(.+)', s)
     if m_search and not ('playlist' in s or 'unir' in s or 'combinar' in s or 'recorr' in s):

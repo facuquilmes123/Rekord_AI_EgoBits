@@ -7,13 +7,17 @@ from ..core.models import PlanningError
 
 def analysis_query(query):
     text=''.join(c for c in unicodedata.normalize('NFD',query.casefold()) if unicodedata.category(c)!='Mn')
-    return bool(re.search(r'analiz|analisis',text) and re.search(r'falt|pendient|sin |no .*analiz|sin analizar',text))
+    return bool(re.search(r'analiz|analisis',text) and re.search(r'falt|pendient|sin |no .*analiz|no (?:tienen?|tengo|hay)\s+analisis',text))
 
 
 def metadata_query(query):
     """Recognize missing-field questions without sending whole-library facts to the LLM."""
     text=''.join(c for c in unicodedata.normalize('NFD',query.casefold()) if unicodedata.category(c)!='Mn')
-    if not re.search(r'\b(sin|falta\w*|pendiente\w*|incomplet\w*)\b',text):return None
+    field=r'(?:genero\w*|etiqueta\w*|bpm|tempo|tonalidad\w*|clave\w*|key)'
+    missing=(r'\b(?:falta\w*|pendiente\w*|incomplet\w*|vaci[oa]s?)\b|\ben blanco\b|'
+             r'\b(?:sin|no (?:tienen?|tengo|hay))\s+(?:datos? (?:de )?|definir\s+)?'+field+r'\b|'
+             r'\b'+field+r'\s+(?:sin (?:definir|asignar|registrar)|no definid[oa]s?)\b')
+    if not re.search(missing,text):return None
     fields=[]
     for key,pattern in (('genre',r'\b(genero\w*|etiqueta\w*)\b'),
                         ('bpm',r'\b(bpm|tempo)\b'),

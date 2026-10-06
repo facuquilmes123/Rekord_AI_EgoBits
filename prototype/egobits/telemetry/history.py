@@ -2,6 +2,7 @@
 from datetime import datetime, timezone
 from pathlib import Path
 import threading
+import copy
 import time
 from ..adapters.sqlcipher_read import connection
 from .audio_candidates import path_key
@@ -22,6 +23,7 @@ class HistoryObserver:
         self.reason = 'Esperando conexión a la base local'
         self.revision = None
         self.metadata_mode=False
+        self.ranking_cache=None;self.ranking_key=None;self.ranking_at=0
         self.path_index={}
 
     def reset(self):
@@ -88,6 +90,12 @@ class HistoryObserver:
         matches=self.path_index.get(path_key(self.current[3]),[])
         if len(matches)!=1: return {**base,'reason':'La pista registrada no tiene correspondencia única en el XML'}
         try:
-            result=recommend(matches[0],list(lib.tracks.values()),options or RecommendationOptions())
+            from ..core.recommender import compact_recommendation
+            selected_options=options or RecommendationOptions()
+            key=(lib.revision,tuple(str(value) for value in self.current),tuple(sorted(vars(selected_options).items())))
+            if key!=self.ranking_key or time.monotonic()-self.ranking_at>=5:
+                self.ranking_cache=compact_recommendation(recommend(matches[0],list(lib.tracks.values()),selected_options))
+                self.ranking_key=key;self.ranking_at=time.monotonic()
+            result=copy.deepcopy(self.ranking_cache)
             return {**base,**result,'history_event_id':str(self.current[0]),'age_seconds':round(time.monotonic()-self.changed_at,1)}
         except PlanningError as exc: return {**base,'reason':str(exc)}
