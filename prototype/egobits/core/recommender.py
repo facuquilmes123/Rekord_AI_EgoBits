@@ -25,8 +25,10 @@ class RecommendationOptions:
     min_duration_seconds: float | None = None
     max_energy_delta: float | None = None
     avoid_same_artist: bool = True
+    max_key_shift: int = 0
 
     def __post_init__(self):
+        if type(self.max_key_shift) is not int or not 0<=self.max_key_shift<=2:raise PlanningError('Key Shift: 0..2 semitonos')
         if type(self.count) is not int or not 1 <= self.count <= 50:
             raise PlanningError('Cantidad de recomendaciones: 1..50')
         if self.key_mode not in ('compatible','same'):raise PlanningError('Modo tonal: compatible o same')
@@ -57,6 +59,13 @@ def recommend(current: Track, tracks: list[Track], options: RecommendationOption
             continue
         delta = None if track.bpm is None or current.bpm is None else abs(track.bpm - current.bpm)
         hs = harmonic_score(current.key, track.key)
+        shift=0;resulting_key=track.key
+        if options.harmonic and options.max_key_shift:
+            from .intelligence import key_shift_options
+            shifts=key_shift_options(current.key,track.key,options.max_key_shift)
+            if options.key_mode=='same':shifts=[s for s in shifts if s['resulting_key']==current.key]
+            if shifts:
+                selected=shifts[0];shift=selected['semitones'];resulting_key=selected['resulting_key'];hs=selected['harmonic_score']
         energy = None if track.energy is None or current.energy is None or not track.energy_source or not current.energy_source else abs(track.energy - current.energy)
         same_genre=bool(current.genre and track.genre and normalized_genre(track.genre)==normalized_genre(current.genre))
         reason = None
@@ -64,7 +73,7 @@ def recommend(current: Track, tracks: list[Track], options: RecommendationOption
             reason = 'BPM ausente o fuera del margen'
         elif options.harmonic and (hs is None or hs < 0.85):
             reason = 'Tonalidad ausente o incompatible'
-        elif options.harmonic and options.key_mode=='same' and track.key!=current.key:
+        elif options.harmonic and options.key_mode=='same' and resulting_key!=current.key:
             reason = 'Tonalidad distinta'
         elif options.same_genre and not same_genre:
             reason = 'Género diferente o ausente'
@@ -90,10 +99,13 @@ def recommend(current: Track, tracks: list[Track], options: RecommendationOption
             components.append((10,1 if options.max_energy_delta==0 else 1-energy/options.max_energy_delta))
             reasons.append(f'Energía: diferencia {energy:g}/10 (con fuente)')
         score=sum(weight*value for weight,value in components)/sum(weight for weight,_ in components) if components else 0
+        if shift:
+            score*=1-.03*abs(shift)
+            reasons.append(f'Key Shift manual {shift:+d} semitonos: {track.key} → {resulting_key}. Ensayá el resultado audible.')
         if options.min_duration_seconds is not None:reasons.append(f'Duración: {track.duration:g} s')
         if not components:reasons.append('Sin filtros de BPM, tonalidad, género o energía; no se calcula compatibilidad')
         row={**vars(track),'compatibility_score':round(score*100,1) if components else None,'match_reasons':reasons,
-             'match_details':{'bpm_delta':delta,'harmonic_score':hs,'same_genre':same_genre,'energy_delta':energy}}
+             'match_details':{'bpm_delta':delta,'harmonic_score':hs,'same_genre':same_genre,'energy_delta':energy,'key_shift_semitones':shift,'resulting_key':resulting_key}}
         candidates.append((-score,(delta or 0) if options.match_bpm else 0,-(hs or 0) if options.harmonic else 0,track.id,row))
     candidates.sort(key=lambda row: row[:4])
     chosen = [row[-1] for row in candidates[:options.count]]

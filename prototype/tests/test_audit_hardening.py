@@ -62,7 +62,7 @@ class AuditHardeningTests(unittest.TestCase):
 
     def test_versions_are_anchored_and_unknown_is_blocked(self):
         with tempfile.TemporaryDirectory() as td:
-            db=Path(td)/'master.db';db.touch()
+            db=Path(td).resolve()/'master.db';db.touch()
             for version,accepted in [('7.2.19',True),('6.8.5',True),('17.2',False),('16.8',False),('',False),('unknown 7.2',False)]:
                 writer=NativePlaylistWriter(Path(td)/'ops',lambda:'closed',lambda:{'databases':[str(db)],'installations':[{'version':version}]})
                 if accepted:writer.guard(db)

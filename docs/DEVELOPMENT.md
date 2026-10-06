@@ -6,7 +6,7 @@
 - `AGENTS.md` establece las reglas de preservación, QA y actualización. Leerlo antes de cambiar la app.
 - `prototype/egobits/desktop/service.py` sirve la API local y enruta el chat. `opportunities.py` responde consultas de metadatos desde la colección completa; `assistant_context.py` acota los datos enviados al modelo.
 - `prototype/egobits/desktop/ui/` contiene la interfaz. `desktop/src-tauri/` contiene el shell Windows y la firma de aprobaciones nativas.
-- `docs/RELEASE_039.md` conserva la evidencia del último Setup completo; la versión actual 0.3.12 es una actualización directa del host, sin nuevo Setup. `docs/ASISTENTE_CAPACIDADES_0311.md` detalla capacidades, ejemplos y niveles de evidencia; `docs/RENDIMIENTO_0312.md` registra las optimizaciones y evaluación de propuestas.
+- `docs/RELEASE_039.md` conserva la evidencia del último Setup completo; la versión actual 0.4.0 es una actualización directa del host, sin nuevo Setup. `docs/ASISTENTE_CAPACIDADES_0311.md` detalla capacidades, ejemplos y niveles de evidencia; `docs/RENDIMIENTO_0312.md` registra las optimizaciones y evaluación de propuestas.
 
 ## Para cada cambio
 
@@ -18,7 +18,7 @@
 
 ## Colección y respuestas
 
-El chat necesita un XML real exportado por Rekordbox. Si está la biblioteca de demostración o falta el XML, solicita cargarlo en Configuración. Los conteos de metadatos cubren el XML cargado completo; sólo los ejemplos de pistas son una muestra. El XML puede quedar desactualizado frente a Rekordbox y no representa el master audible. Las listas de pistas sin género, BPM o tonalidad son de lectura, y la corrección se realiza en Rekordbox seguida de una nueva exportación.
+El chat requiere una colección real: XML exportado o base viva de sólo lectura. Si falta, solicita conectar desde Laboratorio DJ o cargar XML en Configuración. Los conteos cubren toda la colección conectada; las muestras son sólo ejemplos. La base viva refresca cambios de DB/WAL con caché de tres segundos; el XML puede quedar desactualizado. Ninguna fuente certifica el master audible. Ver `docs/COLECCION_INTELIGENTE_040.md` para herramientas, pruebas, límites de modelo, USB y simulación.
 
 ## Actualización directa de este host
 
@@ -54,3 +54,12 @@ Compilar backend y shell con la versión de `release.json`, comprobar hashes y h
 - Instalación reiniciada: `/api/status` 0.3.12, colección real de 24.140 pistas, ninguna operación nativa activa. Nueve verificaciones API aprobadas: resumen completo, propuesta de colección, ayuda, metadatos sin modelo, género directo, recomendaciones compactas, inspección, auditoría y Rekordbox abierto. Consulta «no tienen género»: 0,094 s; Tech House: 0,125 s; resumen: 0,250 s; propuesta de 10 pistas: 0,641 s. Tiempos puntuales, sin garantía bajo carga musical.
 - No se escribió la colección musical real ni se inició un escaneo completo de toda la música para medir. Se conservan restricciones de respaldo/confirmación, identidad, rutas persistentes y updater deshabilitado. Arrastre físico, hardware DJ, master audible y Setup en Windows limpio siguen sin certificar.
 - Se detectó otro trabajo de web en el checkout original; sus cambios se preservaron. Documentación y publicación de esta iteración se completaron en un worktree de la rama de rendimiento.
+
+
+## Verificación de 0.4.0 en este host (2026-10-06)
+
+- Colección viva, Laboratorio DJ y 12 operaciones compartidas: ver `docs/COLECCION_INTELIGENTE_040.md`.
+- 308 tests de suite (307 aprobados, uno omitido); MCP stdio real aprobado aparte. Diez checks de EXE congelado y once checks de la instalación real aprobados.
+- Backend y shell compilados con código 0, actualización sin Setup, respaldo verificado y Rekordbox abierto. Sólo se cambiaron dos preferencias para activar la lectura nativa.
+- El modelo CPU agotó el límite de dos intentos de composición. Se mantienen controles deterministas equivalentes y rutas directas para filtros + plan. No confundir estos ensayos con certificación de CDJs, USB físico, Pro DJ Link o master audible.
+- Revisión manual del agente principal: autenticación, firmas ligadas a operación, rutas USB contenidas, hashes, rollback, límites del parser, ausencia de escrituras autónomas y preservación de ANLZ desconocidos. No equivale a revisión humana independiente.

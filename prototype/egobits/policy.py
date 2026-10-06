@@ -87,7 +87,9 @@ def capability(
         return Capability(True, '', 'closed')
 
     if tool == 'device.export':
-        return Capability(False, 'Exportación directa a dispositivos USB no admitida en esta fase', 'unsupported')
+        if state!=State.CLOSED:return Capability(False,'Cerrá Rekordbox y sus agentes antes de preparar la exportación USB','closed')
+        if not backup_verified or not revision_matches:return Capability(False,'Prepará el USB DeviceSQL en Laboratorio DJ: respaldo, revisión vigente y confirmación nativa','closed')
+        return Capability(True,'Requiere revisión y confirmación nativa; Device Library Plus se gestiona desde Rekordbox','closed')
 
     return Capability(False, f'Función no admitida: {tool}', 'unsupported')
 

@@ -36,7 +36,7 @@ def get_library() -> Library:
     global _LIB
     if _LIB is None:
         from .desktop.service import get_or_load_library
-        _LIB = get_or_load_library()
+        return get_or_load_library()
     return _LIB
 
 def system_status() -> dict[str, Any]:
@@ -191,7 +191,19 @@ def apply_native_tool(*args, **kwargs) -> dict[str, Any]:
     raise NotImplementedError('La escritura nativa requiere revisión y confirmación en la aplicación Windows; no está expuesta por MCP')
 
 # Registro condicional en FastMCP si está disponible
+def collection_tools_catalog() -> dict[str, Any]:
+    from .core.toolbox import catalog
+    return {'tools':catalog()}
+
+
+def collection_tools_execute(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+    from .core.toolbox import execute
+    return execute(get_library(),name,arguments)
+
+
 if mcp:
+    mcp.tool(name='collection.tools', annotations={'readOnlyHint': True, 'destructiveHint': False})(collection_tools_catalog)
+    mcp.tool(name='collection.execute', annotations={'readOnlyHint': True, 'destructiveHint': False})(collection_tools_execute)
     mcp.tool(name='system.status', annotations={'readOnlyHint': True, 'destructiveHint': False, 'openWorldHint': False})(system_status)
     mcp.tool(name='playlist.list', annotations={'readOnlyHint': True, 'destructiveHint': False, 'openWorldHint': False})(list_playlists)
     mcp.tool(name='library.search', annotations={'readOnlyHint': True, 'destructiveHint': False, 'openWorldHint': False})(search_tracks)

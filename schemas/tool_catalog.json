@@ -1,12 +1,12 @@
 {
-  "schema_version": "0.2",
+  "schema_version": "0.4",
   "states": [
     "any",
     "open",
     "closed",
     "unsupported"
   ],
-  "source_notes": "13 herramientas MCP implementadas y probadas por stdio. La app Windows permite crear playlists y consolidar duplicados idénticos con cierre, respaldo y confirmación; esas escrituras no están expuestas al MCP ni al modelo. El master audible requiere un proveedor validado. El chat también permite resumir la colección, inspeccionar playlists y planificar desde toda la colección; library.summary y playlist.inspect son acciones del chat, no herramientas MCP registradas.",
+  "source_notes": "15 registered MCP tools. collection.tools describes 12 shared read-only operations; collection.execute invokes them with validated arguments. Native/USB writes require Windows confirmation and verified backups. Acoustic jobs run only on explicit desktop requests. Pro DJ Link is passive or simulated, never certified audible master.",
   "tools": [
     {
       "name": "system.status",
@@ -233,13 +233,13 @@
       "read_only": true,
       "confirmation": true,
       "phase": 2,
-      "prototype": false,
+      "prototype": true,
       "requires": [
         "local_audio",
         "idle_resources"
       ],
       "mcp_registered": false,
-      "status": "unavailable"
+      "status": "desktop_only"
     },
     {
       "name": "recommend.live",
@@ -268,21 +268,151 @@
         "unchanged_revision"
       ],
       "mcp_registered": false,
-      "status": "unavailable"
+      "status": "desktop_only"
     },
     {
       "name": "device.export",
-      "state": "unsupported",
+      "state": "closed",
       "read_only": false,
       "confirmation": true,
       "phase": 5,
       "prototype": false,
       "requires": [
-        "device_not_in_use",
-        "certified_adapter"
+        "devicesql_without_library_plus",
+        "rekordbox_agents_closed",
+        "verified_backup",
+        "unchanged_revision",
+        "native_confirmation"
       ],
       "mcp_registered": false,
-      "status": "unavailable"
+      "status": "desktop_only"
+    },
+    {
+      "name": "collection.tools",
+      "state": "any",
+      "read_only": true,
+      "mcp_registered": true,
+      "status": "implemented"
+    },
+    {
+      "name": "collection.execute",
+      "state": "any",
+      "read_only": true,
+      "mcp_registered": true,
+      "status": "implemented"
+    }
+  ],
+  "shared_operations": [
+    {
+      "name": "collection.query",
+      "description": "Filtrar toda la colección por título/artista, género, estrellas, sin reproducir, fecha AAAA-MM-DD y MyTags. Resultados paginados.",
+      "parameters": {
+        "query": "",
+        "genre": "",
+        "min_rating": null,
+        "max_rating": null,
+        "unplayed": false,
+        "added_after": "",
+        "tags": null,
+        "tag_mode": "all",
+        "sort_by_date": false,
+        "limit": 50,
+        "offset": 0
+      },
+      "read_only": true
+    },
+    {
+      "name": "collection.tags",
+      "description": "Listar MyTags con categoría e ID de la colección viva.",
+      "parameters": {},
+      "read_only": true
+    },
+    {
+      "name": "collection.missing_files",
+      "description": "Comprobar archivos por página; next_offset indica la página siguiente.",
+      "parameters": {
+        "limit": 100,
+        "offset": 0
+      },
+      "read_only": true
+    },
+    {
+      "name": "track.structure",
+      "description": "Consultar hot cues, memory cues, loops, beatgrid y frases ANLZ existentes de un ID.",
+      "parameters": {
+        "track_id": "required"
+      },
+      "read_only": true
+    },
+    {
+      "name": "set.preshow",
+      "description": "Auditar una playlist o toda la colección por páginas antes del show.",
+      "parameters": {
+        "playlist": null,
+        "limit": 100,
+        "offset": 0
+      },
+      "read_only": true
+    },
+    {
+      "name": "transition.phrase",
+      "description": "Proponer mezcla 4/4 basada en Outro analizado y Hot Cue A, para dos IDs.",
+      "parameters": {
+        "from_id": "required",
+        "to_id": "required",
+        "bars": 16
+      },
+      "read_only": true
+    },
+    {
+      "name": "set.plan_selection",
+      "description": "Ordenar IDs obtenidos de filtros en modo bpm o energy; sólo propuesta.",
+      "parameters": {
+        "track_ids": "required",
+        "count": 10,
+        "mode": "bpm"
+      },
+      "read_only": true
+    },
+    {
+      "name": "recommend.key_shift",
+      "description": "Compatibilidad armónica con Key Shift optativo de 0, 1 o 2 semitonos.",
+      "parameters": {
+        "track_id": "required",
+        "max_key_shift": 0,
+        "count": 5
+      },
+      "read_only": true
+    },
+    {
+      "name": "audio.measurement",
+      "description": "Leer LUFS y energía estimada ya calculados offline para un ID.",
+      "parameters": {
+        "track_id": "required"
+      },
+      "read_only": true
+    },
+    {
+      "name": "device.list",
+      "description": "Detectar USB DeviceSQL presentes, sin modificar archivos.",
+      "parameters": {},
+      "read_only": true
+    },
+    {
+      "name": "device.audit",
+      "description": "Auditar un device_id obtenido de device.list: archivos, análisis y referencias huérfanas.",
+      "parameters": {
+        "device_id": "required",
+        "limit": 100,
+        "offset": 0
+      },
+      "read_only": true
+    },
+    {
+      "name": "link.state",
+      "description": "Consultar receptor o simulación Pro DJ Link; On-Air no certifica audio audible.",
+      "parameters": {},
+      "read_only": true
     }
   ]
 }

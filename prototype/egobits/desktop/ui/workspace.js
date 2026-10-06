@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (selected.length >= 100) { api.notice('La selección admite hasta 100 pistas.'); return; }
     selected.push(track); renderSelection();
   }
+  window.addEventListener('select-library-tracks',event=>{for(const track of event.detail)addTrack(track);});
   function renderSelection() {
     api.selection = selected.map(t => t.id); $('draft-list').replaceChildren();
     selected.forEach((track, index) => {

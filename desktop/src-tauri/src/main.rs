@@ -61,7 +61,7 @@ async fn approve_native_operation(app:tauri::AppHandle,token:String,source_revis
         let summary=preview["summary"].as_str().ok_or("Resumen inválido")?;
         let operation=preview["operation"].as_str().ok_or("Operación inválida")?;
         let digest=preview["digest"].as_str().ok_or("Propuesta inválida")?;
-        let path=match operation { "restore"=>"/api/native/restore/apply", "create_playlist"=>"/api/native/apply", "consolidate_duplicates"=>"/api/duplicates/delete", "recover_transactions"=>"/api/transactions/apply", "restore_transactions"=>"/api/transactions/restore/apply", _=>return Err("Operación no admitida".into()) };
+        let path=match operation { "usb_export"=>"/api/device/export/apply", "usb_restore"=>"/api/device/restore/apply", "restore"=>"/api/native/restore/apply", "create_playlist"=>"/api/native/apply", "consolidate_duplicates"=>"/api/duplicates/delete", "recover_transactions"=>"/api/transactions/apply", "restore_transactions"=>"/api/transactions/restore/apply", _=>return Err("Operación no admitida".into()) };
         if !confirm_native(summary) { return Ok(serde_json::json!({"state":"cancelled"})); }
         let signature=approval_signature(&state.approval_key,&format!("{operation}:{token}:{digest}"));
         let payload=serde_json::json!({"token":token,"source_revision":source_revision,"confirmed":true,"approval_digest":digest,"approval_signature":signature});

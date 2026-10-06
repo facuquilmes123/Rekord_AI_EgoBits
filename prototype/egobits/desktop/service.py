@@ -39,6 +39,10 @@ from ..adapters.transaction_recovery import TransactionRecovery
 from ..telemetry.history import HistoryObserver
 from ..telemetry.audio_watch import AudioWatch
 from .track_handoff import drag_file
+from .analysis_jobs import AnalysisJobs
+from ..adapters.device_library import UsbExports
+from ..telemetry.prodj_link import ProDjLink
+from ..core import toolbox
 
 UI_DIR = Path(__file__).resolve().parent / 'ui'
 EXAMPLES_DIR = (Path(sys._MEIPASS) / 'examples' if getattr(sys, 'frozen', False)
@@ -46,10 +50,12 @@ EXAMPLES_DIR = (Path(sys._MEIPASS) / 'examples' if getattr(sys, 'frozen', False)
 _SESSION_TOKEN = None
 _NATIVE_APPROVAL_KEY = os.environ.get('EGB_NATIVE_APPROVAL_KEY')
 _GLOBAL_LIB = None
+_NATIVE_COLLECTION = None
 _MONITOR = ProcessMonitor()
 _LIVE_PROVIDER = None
 _LLAMA_RUNTIME = None
 _AI_LOCK = threading.Lock()
+_AGENT_CANCEL = threading.Event()
 _AUDIO_LOCK = threading.Lock()
 _AUDIO_WATCH = AudioWatch(_MONITOR.check_state)
 atexit.register(_AUDIO_WATCH.stop)
@@ -61,6 +67,10 @@ _NATIVE = NativePlaylistWriter(Path(os.environ.get('LOCALAPPDATA', str(Path.home
 _TRANSACTIONS = TransactionRecovery(_NATIVE.root, _MONITOR.check_native_state, discover, _NATIVE)
 _CLOSER = RekordboxCloser(discover, _MONITOR, _NATIVE)
 _DUPLICATES = DuplicateScan()
+_ANALYSIS = AnalysisJobs(_SETTINGS.path.parent / 'acoustic-analysis')
+_USB = UsbExports(_SETTINGS.path.parent / 'usb-backups', _MONITOR.check_native_state)
+_LINK = ProDjLink()
+atexit.register(_LINK.stop)
 _LLM_STATUS = {'state': 'not_started', 'reason': 'Se activa al interpretar consultas no reconocidas por el parser local'}
 ALLOWED_ORIGINS = {'http://tauri.localhost', 'tauri://localhost'}
 TOOL_NAMES = ('system.status', 'playlist.list', 'library.search', 'playlist.plan',
@@ -70,11 +80,19 @@ TOOL_NAMES = ('system.status', 'playlist.list', 'library.search', 'playlist.plan
 
 
 def get_or_load_library(default_xml=None, default_energies=None):
-    global _GLOBAL_LIB
+    global _GLOBAL_LIB,_NATIVE_COLLECTION
     with _LIB_LOCK:
-        if _GLOBAL_LIB is not None:
-            return _GLOBAL_LIB
         settings = _SETTINGS.snapshot()
+        if settings.get('collection_mode')=='native' and not default_xml and not os.environ.get('EGB_LIBRARY_XML'):
+            from ..adapters.native_collection import NativeCollection
+            database=settings['native_database']
+            if not database:raise PlanningError('Seleccioná una base local de Rekordbox')
+            if _NATIVE_COLLECTION is None or _NATIVE_COLLECTION.database!=Path(database).resolve():
+                _NATIVE_COLLECTION=NativeCollection(database,_SETTINGS.path.parent/'collection-cache')
+            _GLOBAL_LIB=_NATIVE_COLLECTION.load()
+            return _ANALYSIS.attach(_GLOBAL_LIB)
+        if _GLOBAL_LIB is not None:
+            return _ANALYSIS.attach(_GLOBAL_LIB)
         filename = default_xml or os.environ.get('EGB_LIBRARY_XML') or settings['library_xml']
         xml_path = Path(filename) if filename else EXAMPLES_DIR / 'library.xml'
         if not xml_path.is_file():
@@ -85,7 +103,7 @@ def get_or_load_library(default_xml=None, default_energies=None):
             energy_file = EXAMPLES_DIR / 'energies.json'
         energy = json.loads(Path(energy_file).read_text(encoding='utf-8')) if energy_file else None
         _GLOBAL_LIB = Library(xml_path, energy)
-        return _GLOBAL_LIB
+        return _ANALYSIS.attach(_GLOBAL_LIB)
 
 
 def current_library():
@@ -156,9 +174,12 @@ def status():
     capabilities = {name: vars(capability(name, State(state), snapshot=lib is not None,
                     manual_track_id=True, live_fresh=live.get('confirmed', False),
                     opt_in=settings['notifications']['enabled'])) for name in TOOL_NAMES}
-    return {'app': 'Rekord AI', 'version': '0.3.12', 'rekordbox_state': state,'native_process_state':native_state,
+    return {'app': 'Rekord AI', 'version': '0.4.0', 'rekordbox_state': state,'native_process_state':native_state,
             'snapshot_revision': lib.revision if lib else None,
             'source_path': str(lib.source) if lib else None, 'library_error': error,
+            'source_kind':getattr(lib,'source_kind','xml') if lib else None,
+            'snapshot_at':getattr(lib,'snapshot_at',None) if lib else None,
+            'analysis_job':_ANALYSIS.snapshot(), 'pro_dj_link':_LINK.snapshot(),
             'demo': bool(lib and lib.source == (EXAMPLES_DIR / 'library.xml').resolve()),
             'tracks_count': len(lib.tracks) if lib else 0, 'playlists_count': len(lib.playlists) if lib else 0,
             'energy_available': bool(lib and any(t.energy is not None for t in lib.tracks.values())),
@@ -263,7 +284,9 @@ def assistant_answer(query, lib, reference=None, history=None):
 
 def approval_preview(token):
     try: return _NATIVE.approval_preview(token)
-    except PlanningError: return _TRANSACTIONS.approval_preview(token)
+    except PlanningError:
+        try:return _TRANSACTIONS.approval_preview(token)
+        except PlanningError:return _USB.approval_preview(token)
 
 
 def verify_native_approval(body, operation):
@@ -360,7 +383,7 @@ class EgoBitsRequestHandler(BaseHTTPRequestHandler):
             self.send_error_json('Acceso denegado', 403)
             return
         path = urlparse(self.path).path
-        if path in ('/', '/index.html', '/app.js', '/style.css', '/workspace.js', '/settings-tabs.js', '/rekord-ia.png', '/favicon.png','/live-popup.html','/live-popup.js'):
+        if path in ('/', '/index.html', '/app.js', '/style.css', '/workspace.js', '/settings-tabs.js', '/intelligence.js', '/rekord-ia.png', '/favicon.png','/live-popup.html','/live-popup.js'):
             target = UI_DIR / ('index.html' if path == '/' else path[1:])
             data = target.read_bytes()
             mime = {'.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8',
@@ -461,6 +484,42 @@ class EgoBitsRequestHandler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         try:
             body = self.read_json_body()
+            if _NATIVE.stop_requested.is_set():raise PlanningError('Rekord AI se está cerrando')
+            if path == '/api/toolbox/catalog':
+                self.send_json({'tools':toolbox.catalog()});return
+            if path == '/api/chat/cancel-steps':
+                _AGENT_CANCEL.set();self.send_json({'state':'cancelling','note':'Los pasos se detienen al finalizar la consulta actual, como máximo en 30 segundos después de cargar el modelo.'});return
+            if path == '/api/toolbox/execute':
+                self.send_json(toolbox.execute(get_or_load_library(),body.get('name'),body.get('arguments',{})));return
+            if path == '/api/analysis/status':
+                self.send_json(_ANALYSIS.snapshot());return
+            if path == '/api/analysis/start':
+                self.send_json(_ANALYSIS.start(get_or_load_library(),body.get('track_ids'),body.get('playlist')));return
+            if path == '/api/analysis/cancel':
+                self.send_json(_ANALYSIS.cancel(body.get('job_id')));return
+            if path == '/api/analysis/track':
+                self.send_json(_ANALYSIS.measurements(get_or_load_library(),body.get('track_id')));return
+            if path == '/api/link/status':self.send_json(_LINK.snapshot());return
+            if path == '/api/link/simulate':self.send_json(_LINK.simulate());return
+            if path == '/api/link/start':self.send_json(_LINK.start(body.get('bind_address','127.0.0.1')));return
+            if path == '/api/link/stop':self.send_json(_LINK.stop());return
+            if path == '/api/device/discover':self.send_json(_USB.discover());return
+            if path == '/api/device/backups':self.send_json(_USB.backups());return
+            if path == '/api/device/register':self.send_json(_USB.register(body.get('root')));return
+            if path == '/api/device/inspect':
+                self.send_json(_USB.device(body.get('device_id')).inspect(body.get('limit',100),body.get('offset',0)));return
+            if path in ('/api/device/export/prepare','/api/device/export/apply','/api/device/restore/prepare','/api/device/restore/apply'):
+                if not _SESSION_TOKEN:raise PlanningError('La escritura USB requiere la aplicación Windows autenticada')
+                if path.endswith('/apply'):verify_native_approval(body,'usb_restore' if '/restore/' in path else 'usb_export')
+                if not _NATIVE.lock.acquire(blocking=False):raise PlanningError('Hay otra operación de escritura activa')
+                try:
+                    if _NATIVE.stop_requested.is_set():raise PlanningError('La aplicación se está cerrando')
+                    if path=='/api/device/restore/prepare':result=_USB.prepare_restore(body.get('operation_id'))
+                    elif path.endswith('/prepare'):
+                        result=_USB.prepare(body.get('device_id'),body.get('name'),body.get('device_track_ids'),get_or_load_library(),body.get('track_ids'))
+                    else:result=_USB.apply(body.get('token'))
+                    self.send_json(result);return
+                finally:_NATIVE.lock.release()
             if path.startswith(('/api/native/', '/api/transactions/', '/api/rekordbox/close/','/api/duplicates/prepare','/api/duplicates/delete')) and not _SESSION_TOKEN:
                 self.send_error_json('Esta operación requiere la aplicación Windows autenticada.',403)
                 return
@@ -472,6 +531,7 @@ class EgoBitsRequestHandler(BaseHTTPRequestHandler):
                 self.send_json(approval_preview(body.get('token')))
                 return
             if path == '/api/shutdown' and _SESSION_TOKEN and _SERVER:
+                if _ANALYSIS.snapshot()['state']=='running':raise PlanningError('Esperá o cancelá el análisis acústico antes de cerrar')
                 if not _NATIVE.lock.acquire(blocking=False):
                     self.send_error_json('Esperá a que termine la operación sobre la colección.',409)
                     return
@@ -549,10 +609,26 @@ class EgoBitsRequestHandler(BaseHTTPRequestHandler):
                 finally: _AUDIO_LOCK.release()
                 return
             if path == '/api/settings':
-                if set(body) & {'library_xml', 'energies_json'}:
+                if set(body) & {'library_xml', 'energies_json','collection_mode','native_database'}:
                     raise PlanningError('Cargá la biblioteca desde /api/library para validar antes de guardarla')
                 self.send_json(_SETTINGS.update(body))
                 return
+            if path == '/api/library/native':
+                if _NATIVE.lock.locked():raise PlanningError('Esperá a que termine la operación nativa')
+                from ..adapters.native_collection import NativeCollection
+                database=body.get('path')
+                if not database:
+                    databases=discover()['databases']
+                    if len(databases)!=1:raise PlanningError('Seleccioná una base local: detección ausente o ambigua')
+                    database=databases[0]
+                if not isinstance(database,str):raise PlanningError('Ruta de base inválida')
+                provider=NativeCollection(database,_SETTINGS.path.parent/'collection-cache')
+                library=provider.load(force=True)
+                with _LIB_LOCK:
+                    _SETTINGS.update({'collection_mode':'native','native_database':str(provider.database)})
+                    globals()['_NATIVE_COLLECTION']=provider
+                    _GLOBAL_LIB=library;_HISTORY.reset();_AUDIO_WATCH.stop()
+                self.send_json(status());return
             if path == '/api/library':
                 if _NATIVE.lock.locked():raise PlanningError('Esperá a que termine la operación nativa antes de cambiar la colección')
                 filename = body.get('path')
@@ -565,7 +641,7 @@ class EgoBitsRequestHandler(BaseHTTPRequestHandler):
                 energy = json.loads(Path(energy_path).read_text(encoding='utf-8')) if energy_path else None
                 library = Library(source, energy)
                 with _LIB_LOCK:
-                    _SETTINGS.update({'library_xml': str(source), 'energies_json': str(Path(energy_path).resolve()) if energy_path else ''})
+                    _SETTINGS.update({'collection_mode':'xml','library_xml': str(source), 'energies_json': str(Path(energy_path).resolve()) if energy_path else ''})
                     _GLOBAL_LIB = library
                     _AUDIO_WATCH.stop()
                     _HISTORY.reset()
@@ -579,11 +655,23 @@ class EgoBitsRequestHandler(BaseHTTPRequestHandler):
                 lib, library_error = current_library()
                 if lib is None or getattr(lib,'source',None) == (EXAMPLES_DIR / 'library.xml').resolve():
                     reason = library_error or 'Está cargada la biblioteca de demostración.'
-                    self.send_json({'response':f'{reason} Para consultar tu colección, exportá el XML desde Rekordbox y cargalo en Configuración → Colección.',
+                    self.send_json({'response':f'{reason} Conectá la colección viva desde Laboratorio DJ, o cargá un XML de Rekordbox en Configuración → Colección.',
                                     'applied':False,'answer_mode':'collection_required',
                                     'suggestions':[{'label':'Conectar mi colección','tab':'tab-config','target':'library-form'}]})
                     return
                 if lib is not None: query = resolve_followup(query,lib,body.get('context_reference'))
+                direct=toolbox.direct(lib,query)
+                if direct is not None:self.send_json(enrich_chat(direct,lib));return
+                import re
+                if toolbox.needs_agent(lib,query):
+                    if not _SETTINGS.snapshot()['llm_enabled']:raise PlanningError('Usá los controles de Laboratorio DJ o activá IA local para combinar consultas')
+                    with ai_slot():
+                        _AGENT_CANCEL.clear()
+                        try:result=toolbox.run_agent(lib,query,local_llama_client(),cancelled=_AGENT_CANCEL)
+                        except PlanningError:
+                            if _LLAMA_RUNTIME:_LLAMA_RUNTIME.stop()
+                            result={'response':'El modelo local no completó esta combinación dentro del límite. Podés realizarla con los filtros y controles de Laboratorio DJ. No se modificó tu colección.','applied':False}
+                    self.send_json(enrich_chat(result,lib));return
                 from .opportunities import analysis_query,answer_analysis,metadata_query,answer_metadata
                 if lib is not None and analysis_query(query) and not extract_mentions(query):
                     self.send_json(enrich_chat(answer_analysis(lib,discover),lib));return

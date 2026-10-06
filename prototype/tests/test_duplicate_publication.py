@@ -48,7 +48,7 @@ class DuplicateMappingTests(unittest.TestCase):
 class AudioRecoveryTests(unittest.TestCase):
     def test_held_unicode_identity_moves_and_rolls_back_without_replacement(self):
         with tempfile.TemporaryDirectory() as folder:
-            root=Path(folder);source=root/'música 🎵.mp3';target=root/'recuperación 🎵.mp3';source.write_bytes(b'fixture audio')
+            root=Path(folder).resolve();source=root/'música 🎵.mp3';target=root/'recuperación 🎵.mp3';source.write_bytes(b'fixture audio')
             m={'audio_checks':{str(source):digest(source)},'audio_moves':[{'source':str(source),'target':str(target),'sha256':digest(source)}]}
             with AudioRecovery(m) as held:
                 held.move();self.assertFalse(source.exists());self.assertTrue(target.exists())
@@ -62,7 +62,7 @@ class AudioRecoveryTests(unittest.TestCase):
 
     def test_crash_restore_plan_never_overwrites_recreated_original(self):
         with tempfile.TemporaryDirectory() as folder:
-            root=Path(folder);source=root/'a.mp3';target=root/'recovery.mp3';target.write_bytes(b'fixture')
+            root=Path(folder).resolve();source=root/'a.mp3';target=root/'recovery.mp3';target.write_bytes(b'fixture')
             origin={'audio_moves':[{'source':str(source),'target':str(target),'sha256':digest(target)}]}
             checks,moves=restore_plan(origin);self.assertEqual(moves[0]['target'],str(source))
             source.write_bytes(b'new music')
@@ -83,7 +83,7 @@ class EncryptedDuplicateTests(unittest.TestCase):
         from pyrekordbox.db6 import tables
         from egobits.adapters.sqlcipher_read import driver_and_key
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
-        self.root=Path(self.temp.name);self.db=self.root/'master.db'
+        self.root=Path(self.temp.name).resolve();self.db=self.root/'master.db'
         driver,key=driver_and_key()
         def connect():
             conn=driver.connect(str(self.db));conn.execute("PRAGMA key='"+key.replace("'","''")+"'");return conn

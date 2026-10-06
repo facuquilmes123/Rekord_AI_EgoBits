@@ -383,6 +383,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (data.needs_selection || data.results || (data.references && data.references.length!==1) || (data.tracks && !data.references && !data.context_reference)) chatReference=null;
       else if (data.context_reference) chatReference=data.context_reference;
       let card = '';
+      if (data.tracks?.length && !data.plan_result) card='<ul>'+data.tracks.slice(0,50).map(t=>`<li>${escapeHtml(t.artist||'')} — ${escapeHtml(t.title||'')} · ID ${escapeHtml(t.id||t.track_id||'')}</li>`).join('')+'</ul>';
+      if (data.tool_trace?.length) card+='<p class="hint">'+data.tool_trace.map(t=>t.state==='complete'?'Consulta completada':'Paso rechazado: '+escapeHtml(t.reason||'validación')).join(' → ')+'</p>';
       if (data.plan_result) {
         lastPlanResult = data.plan_result;
         document.getElementById('plan-out-name').value = data.intent?.out_name || 'Rekord AI - Selección';
@@ -609,6 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const response = await apiFetch('/api/settings');
     if (!response.ok) throw new Error('No se pudieron leer las preferencias');
     const s = await response.json();
+    document.getElementById('lab-shift').value=s.recommendation.max_key_shift||0;
     document.getElementById('config-energy-path').value = s.energies_json;
     for (const [id,value] of Object.entries({'config-llm':s.llm_enabled,'config-push':s.notifications.enabled,'history-monitor':s.notifications.history_popup,'config-silence':s.notifications.silenced,'rec-match-bpm':s.recommendation.match_bpm,'rec-harmonic':s.recommendation.harmonic,'rec-genre':s.recommendation.same_genre,'rec-artist':s.recommendation.avoid_same_artist})) document.getElementById(id).checked=value;
     for (const [id,value] of Object.entries({'config-frequency':s.notifications.min_frequency_seconds,'rec-duration':s.recommendation.min_duration_seconds==null?'':s.recommendation.min_duration_seconds/60,'rec-key-mode':s.recommendation.key_mode,'rec-count':s.recommendation.count,'rec-bpm':s.recommendation.max_bpm_delta,'rec-energy':s.recommendation.max_energy_delta ?? ''})) document.getElementById(id).value=value;
