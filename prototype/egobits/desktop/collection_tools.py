@@ -88,6 +88,38 @@ def draft(lib, ids, revision):
             'score': 'Manual', 'mode': 'manual', 'transitions': transitions, 'excluded': {}, 'audit': audit_setlist(tracks),
             'warnings': ['Orden elegido por el DJ. Revisá las transiciones antes de exportar.']}
 
+
+def collection_summary(lib):
+    from .assistant_context import collection_context
+    context=collection_context(lib,'')
+    used={tid for ids in lib.playlists.values() for tid in ids}
+    summary={**context['collection'],'known_duration_hours':round(sum(t.duration or 0 for t in lib.tracks.values())/3600,2),
+             'missing_duration':sum(t.duration is None for t in lib.tracks.values()),
+             'outside_playlists':sum(tid not in used for tid in lib.tracks),
+             'top_genres':context['top_genres'],'top_artists':context['top_artists']}
+    response=f"Tu XML contiene {summary['tracks']} pistas y {summary['playlists']} playlists. Suma {summary['known_duration_hours']} horas conocidas; {summary['missing_duration']} pistas no tienen duración. Hay {summary['outside_playlists']} pistas fuera de las playlists exportadas.\n"
+    response+='Géneros más frecuentes: '+', '.join(f'{name}: {count}' for name,count in summary['top_genres'])+'.\n'
+    response+=f"Sin BPM: {summary['missing_bpm']}; sin tonalidad: {summary['missing_key']}; sin género: {summary['missing_genre']}. Energía con fuente: {summary['verified_energy']}."
+    return {'response':response,'summary':summary,'source_revision':lib.revision,
+            'suggestions':[{'label':'Explorar pistas fuera de playlists','opportunity':'unlisted'},
+                           {'label':'Preparar un set de mi colección','query':'armá un set de 10 pistas desde toda mi colección'}]}
+
+
+def inspect_playlist(lib,path):
+    if path not in lib.playlists:raise PlanningError('Playlist inexistente')
+    ids=lib.playlists[path];tracks=[lib.tracks[tid] for tid in ids]
+    audit=audit_setlist(tracks)
+    bpms=[t.bpm for t in tracks if t.bpm is not None]
+    duration=sum(t.duration for t in tracks) if all(t.duration is not None for t in tracks) else None
+    result={'path':path,'track_ids':ids,'duration_seconds':duration,'bpm_range':[min(bpms),max(bpms)] if bpms else None,
+            'audit':{**audit,'issues':audit['issues'][:100]},'duplicate_references':len(ids)-len(set(ids)),
+            'tracks_with_cues':sum(any(el.tag=='POSITION_MARK' for el in lib.nodes[tid]) for tid in ids),
+            'tracks_with_beatgrid':sum(any(el.tag=='TEMPO' for el in lib.nodes[tid]) for tid in ids)}
+    response=f'{path}: {len(ids)} pistas en su orden exportado; duración '+(f'{duration/60:.1f} minutos' if duration is not None else 'incompleta')+f". {result['duplicate_references']} referencias repetidas.\n"
+    response+=f"Cues en {result['tracks_with_cues']} pistas y beatgrid en {result['tracks_with_beatgrid']}; esto no certifica su precisión musical. {audit['issues_found']} observaciones de metadatos y transiciones."
+    if audit['issues']:response+='\n'+'\n'.join(f"{issue.get('transition_index',issue.get('track_id',''))}: {issue['detail']}" for issue in audit['issues'][:10])
+    return {'response':response,'playlist':result,'source_revision':lib.revision}
+
 def answer_help(query, status):
     import unicodedata
     import re
@@ -96,8 +128,14 @@ def answer_help(query, status):
         if status.get('telemetry_available'):
             return 'Hay un proveedor de pista actual conectado. Sólo sugiero cuando confirma reproducción audible y una señal reciente. Eso identifica la pista; no implica escuchar ni grabar audio.'
         return 'Todavía no tengo una lectura certificada del canal master. En Configuración podés activar seguimiento de nuevas pistas del historial para recibir sugerencias: el historial puede tener demora y no confirma qué deck es audible. También hay un ensayo local de identificación de audio WASAPI, comparando pistas seleccionadas; requiere elegir la salida y aún debe validarse con tu equipo. Elegí una pista manualmente para recomendar desde tu biblioteca por BPM, tonalidad, género y energía. El popup optativo de historial o piloto siempre indica que el master no está confirmado. Los Toast de pista audible confirmada requieren un proveedor validado; ningún piloto los habilita por sí solo.'
-    if any(w in text for w in ('que podes hacer', 'que puedes hacer', 'tus funciones')) or text.strip(' ?¿!.') in ('ayuda','como funciona'):
-        return 'Puedo buscar pistas, listar y comparar playlists, planificar por BPM o energía, explicar transiciones, revisar metadatos y sugerir temas compatibles. En Preparar un set podés usar playlists o toda tu colección, seguir el asistente y armar un orden manual. Exporto XML y M3U8. La creación directa de playlists requiere Rekordbox cerrado, respaldo verificado y confirmación. En Mi colección verifico todos los archivos y ordeno duplicados por evidencia. Las sugerencias por historial usan metadatos de tu colección; no certifican el master audible. El borrado recuperable de duplicados idénticos requiere Rekordbox cerrado, respaldo y confirmación.'
+    if any(w in text for w in ('que podes hacer', 'que puedes hacer', 'que puede hacer', 'que haces', 'tus funciones', 'tus capacidades')) or text.strip(' ?¿!.') in ('ayuda','como funciona'):
+        return ('Con tu XML de Rekordbox cargado puedo buscar pistas, listar y comparar playlists, resumir toda la colección, revisar metadatos y auditar el orden de una playlist o set. '
+                'Explico transiciones y sugiero temas compatibles por metadatos. Planifico por BPM; por energía necesito valores con fuente registrada. '
+                'Podés pedirme «resumí mi colección», «revisá la playlist RUTA» o «armá un set de 10 pistas desde toda mi colección». En colecciones grandes uso una preselección y la informo. '
+                'En Preparar un set también podés elegir playlists, usar el asistente, ordenar manualmente y confirmar la exportación XML o M3U8. '
+                'En Mi colección podés verificar los archivos accesibles y revisar duplicados por evidencia; informo los archivos que no se pudieron verificar. '
+                'Crear playlists nativas o eliminar duplicados idénticos de forma recuperable requiere Rekordbox y sus agentes cerrados, respaldo verificado y confirmación en la app. '
+                'Las sugerencias optativas por historial no certifican el master audible. El XML refleja su última exportación; podés actualizarlo en Configuración.')
     if any(w in text for w in ('eliminar', 'borrar')) and any(w in text for w in ('duplicad', 'archivo', 'pista')):
         return 'En Mi colección, Verificar toda la colección analiza todos los archivos locales y compara SHA-256 completo, incluso con nombres diferentes. Los resultados se ordenan por puntaje de evidencia. Podés revisar una regla por porcentaje que conserva una pista por grupo; nombres parecidos y cues diferentes quedan protegidos. Podés revisar y confirmar la eliminación recuperable de duplicados idénticos con respaldo automático, consolidación de referencias y restauración. Los candidatos por metadatos no autorizan borrado.'
     if ('m3u8' in text or 'xml' in text) and any(w in text for w in ('export', 'guardar', 'diferencia')):

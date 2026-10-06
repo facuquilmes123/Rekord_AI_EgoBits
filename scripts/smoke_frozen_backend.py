@@ -60,6 +60,14 @@ def main():
             report['inference_seconds']=round(time.monotonic()-started,2)
             report['llm_status']=request('/api/status')['llm']
             report['checks']['comparison']=chat['intent']['action']=='playlist.compare' and chat['comparison']['common_count']==1
+            summary=request('/api/chat',{'query':'resumí mi colección'})
+            inspected=request('/api/chat',{'query':'revisá la playlist ROOT/X'})
+            audited=request('/api/chat',{'query':'auditá set con IDs 1,2,3'})
+            collection_plan=request('/api/chat',{'query':'armá un set de 4 pistas desde toda mi colección'})
+            report['checks']['collection_summary']=summary['summary']['tracks']==6 and not summary['applied']
+            report['checks']['playlist_inspection']=inspected['playlist']['track_ids']==['1','2','3']
+            report['checks']['chat_set_audit']=audited['setlist_audit']['track_count']==3 and not audited['applied']
+            report['checks']['chat_collection_plan']=len(collection_plan['plan_result']['track_ids'])==4 and not collection_plan['applied']
             started=time.monotonic()
             conversation=request('/api/chat',{'query':'Como organizo un set para pasar de una apertura tranquila a un cierre intenso?'})
             report['conversation_seconds']=round(time.monotonic()-started,2)

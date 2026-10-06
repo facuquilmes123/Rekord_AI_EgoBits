@@ -3,11 +3,11 @@ from ..ai.intents import (
     PlanPlaylistIntent, SearchTracksIntent, ComparePlaylistsIntent, AuditLibraryIntent,
     ExplainTransitionIntent, RecommendManualIntent, RecommendLiveIntent, SystemStatusIntent,
     UnknownIntent, ListPlaylistsIntent, DuplicatesIntent, DescribeTrackIntent,
-    SimilarTracksIntent, MultiSearchIntent,
+    SimilarTracksIntent, MultiSearchIntent, CollectionSummaryIntent, InspectPlaylistIntent, AuditSetlistIntent,
 )
 from ..core.models import PlanOptions, PlanningError
 from ..core.planner import plan
-from ..core.analysis import audit_library, compare_playlists, explain_transition, find_duplicates
+from ..core.analysis import audit_library, audit_setlist, compare_playlists, explain_transition, find_duplicates
 from ..core.recommender import recommend, RecommendationOptions
 from ..core.search import search_library
 from ..core.mentions import similar_tracks
@@ -54,9 +54,23 @@ def _execute_chat(intent, lib, state, recommendation=None, live=None):
     if isinstance(intent, UnknownIntent):
         return {**result, 'response': intent.reason}
     if isinstance(intent, SystemStatusIntent):
-        return {**result, 'response': f'Rekordbox: {state}. Biblioteca: {len(lib.tracks) if lib else 0} pistas. Puedo buscar, comparar, recomendar y preparar sets offline; exportar XML/M3U8 y proponer playlists nativas. La escritura nativa requiere verificar Rekordbox y sus agentes cerrados, respaldo y confirmación en Configuración. El borrado recuperable de música y la lectura certificada del master todavía están pendientes.'}
+        return {**result, 'response': f'Rekordbox: {state}. Biblioteca: {len(lib.tracks) if lib else 0} pistas. Puedo buscar, comparar, recomendar, auditar playlists y preparar propuestas offline. La exportación XML/M3U8 se confirma en el planificador. Crear playlists nativas y consolidar duplicados idénticos requiere Rekordbox y sus agentes cerrados, respaldo y confirmación en la app. El master audible todavía no está certificado.'}
     if lib is None:
         raise PlanningError('Cargá un XML de colección para realizar esta consulta')
+    if isinstance(intent,CollectionSummaryIntent):
+        from .collection_tools import collection_summary
+        return {**result,**collection_summary(lib)}
+    if isinstance(intent,InspectPlaylistIntent):
+        from .collection_tools import inspect_playlist
+        return {**result,**inspect_playlist(lib,intent.playlist)}
+    if isinstance(intent,AuditSetlistIntent):
+        if not intent.track_ids or len(intent.track_ids)>1000 or any(tid not in lib.tracks for tid in intent.track_ids):
+            raise PlanningError('Indicá de 1 a 1000 IDs existentes en el orden que querés revisar')
+        PlanOptions(max_bpm_step=intent.max_bpm_step)
+        audit=audit_setlist([lib.tracks[tid] for tid in intent.track_ids],intent.max_bpm_step)
+        response=f"Revisé {audit['track_count']} pistas en el orden indicado: {audit['issues_found']} observaciones. La revisión usa metadatos del XML."
+        response+='\n'+'\n'.join(issue['detail'] for issue in audit['issues'][:10])
+        return {**result,'response':response,'setlist_audit':{**audit,'issues':audit['issues'][:100]},'source_revision':lib.revision}
     if isinstance(intent, MultiSearchIntent):
         from ..ai.parser import parse_natural_language_intent
         if not isinstance(intent.queries, (tuple,list)) or not 1 <= len(intent.queries) <= 5:
@@ -84,14 +98,16 @@ def _execute_chat(intent, lib, state, recommendation=None, live=None):
         response += '\nCompatibilidad por metadatos; no confirma similitud sonora ni escucha del master.'
         return {**result, **matches, 'response':response}
     if isinstance(intent, PlanPlaylistIntent):
-        if not intent.playlists:
+        if intent.source not in ('playlists','collection') or (intent.source=='collection' and intent.playlists):
+            raise PlanningError('Origen de planificación inválido')
+        if intent.source=='playlists' and not intent.playlists:
             raise PlanningError('Indicá las playlists de origen')
         options = PlanOptions(count=intent.count, mode=intent.mode, max_bpm_step=intent.max_bpm_step,
                               harmonic=intent.harmonic, same_genre=intent.same_genre,
                               avoid_adjacent_artist=intent.avoid_adjacent_artist)
-        proposal = plan(lib.pool(list(intent.playlists)), options)
+        proposal = plan(list(lib.tracks.values()) if intent.source=='collection' else lib.pool(list(intent.playlists)), options)
         proposal['source_revision'] = lib.revision
-        return {**result, 'response': f'Propuesta de {len(proposal["track_ids"])} pistas por {intent.mode}. Revisala y confirmá su exportación.',
+        return {**result, 'response': f'Propuesta de {len(proposal["track_ids"])} pistas por {intent.mode}. Revisala en Preparar un set y confirmá su exportación.'+ ('\n'+proposal['warnings'][0] if proposal['candidate_total']>1000 else ''),
                 'plan_result': proposal}
     if isinstance(intent, ListPlaylistsIntent):
         rows = [{'path': path, 'count': len(ids)} for path, ids in lib.playlists.items()]
