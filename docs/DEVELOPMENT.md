@@ -1,3 +1,5 @@
+> Estado actual 0.4.1: leer [Conexión productiva](CONEXION_PRODUCTIVA_041.md). Las verificaciones de 0.4.0 más abajo son históricas.
+
 # Desarrollo y registro de cambios
 
 ## Fuente de verdad
@@ -6,7 +8,7 @@
 - `AGENTS.md` establece las reglas de preservación, QA y actualización. Leerlo antes de cambiar la app.
 - `prototype/egobits/desktop/service.py` sirve la API local y enruta el chat. `opportunities.py` responde consultas de metadatos desde la colección completa; `assistant_context.py` acota los datos enviados al modelo.
 - `prototype/egobits/desktop/ui/` contiene la interfaz. `desktop/src-tauri/` contiene el shell Windows y la firma de aprobaciones nativas.
-- `docs/RELEASE_039.md` conserva la evidencia del último Setup completo; la versión actual 0.4.0 es una actualización directa del host, sin nuevo Setup. `docs/ASISTENTE_CAPACIDADES_0311.md` detalla capacidades, ejemplos y niveles de evidencia; `docs/RENDIMIENTO_0312.md` registra las optimizaciones y evaluación de propuestas.
+- `docs/RELEASE_039.md` conserva la evidencia del último Setup completo; la versión actual 0.4.1 es una actualización directa del host, sin nuevo Setup. `docs/ASISTENTE_CAPACIDADES_0311.md` detalla capacidades, ejemplos y niveles de evidencia; `docs/RENDIMIENTO_0312.md` registra las optimizaciones y evaluación de propuestas.
 
 ## Para cada cambio
 
@@ -18,7 +20,7 @@
 
 ## Colección y respuestas
 
-El chat requiere una colección real: XML exportado o base viva de sólo lectura. Si falta, solicita conectar desde Laboratorio DJ o cargar XML en Configuración. Los conteos cubren toda la colección conectada; las muestras son sólo ejemplos. La base viva refresca cambios de DB/WAL con caché de tres segundos; el XML puede quedar desactualizado. Ninguna fuente certifica el master audible. Ver `docs/COLECCION_INTELIGENTE_040.md` para herramientas, pruebas, límites de modelo, USB y simulación.
+El chat requiere una colección real: XML exportado o base viva de sólo lectura. Si falta, intenta detectar la base automáticamente y solicita una elección sólo si la detección falta o es ambigua. Los conteos cubren toda la colección conectada; las muestras son sólo ejemplos. La base viva refresca cambios de DB/WAL con caché de tres segundos; el XML puede quedar desactualizado. Ninguna fuente certifica el master audible. Ver `docs/COLECCION_INTELIGENTE_040.md` para herramientas, pruebas, límites de modelo, USB; `docs/CONEXION_PRODUCTIVA_041.md` documenta la conexión automática y Pro DJ Link productivo.
 
 ## Actualización directa de este host
 

@@ -19,7 +19,7 @@ class DiscoveryTests(unittest.TestCase):
    db=root/'moved/master.db';db.parent.mkdir();db.write_bytes(b'untouched')
    options=root/'roaming/Pioneer/rekordboxAgent/storage/options.json';options.parent.mkdir(parents=True);options.write_text(json.dumps({'options':[['db-path',str(db)]]}))
    result=discover({'ProgramFiles':str(root/'programs'),'APPDATA':str(root/'roaming')},False)
-   self.assertEqual(len(result['installations']),1);self.assertIn(str(db),result['databases']);self.assertEqual(db.read_bytes(),b'untouched');self.assertTrue(result['requires_xml'])
+   self.assertEqual(len(result['installations']),1);self.assertIn(str(db.resolve()),result['databases']);self.assertEqual(db.read_bytes(),b'untouched');self.assertFalse(result['requires_xml']);self.assertEqual(result['preferred_database'],str(db.resolve()))
  def test_malformed(self):
   with tempfile.TemporaryDirectory() as td:
    p=Path(td)/'Pioneer/rekordbox6/bad.settings';p.parent.mkdir(parents=True);p.write_text('<broken')

@@ -99,5 +99,5 @@ def identify(samples,references):
     matched=best>=0.94 and best-runner>=0.10
     return {'matched':matched,'track_id':scores[0][1] if matched else None,'similarity':round(best,4),
             'margin':round(best-runner,4),'rms':rms,'master_confirmed':False,'confirmed':False,
-            'reason':'Coincidencia experimental de audio; falta validar ruta master y casos reales' if matched else 'Audio desconocido, mezcla o identificación ambigua',
+            'reason':'Coincidencia de audio con las referencias de tu colección' if matched else 'Audio desconocido, mezcla o identificación ambigua',
             'note':'No reconoce con fiabilidad pitch/time-stretch, EQ extrema o todas las mezclas; no habilita Toast.'}

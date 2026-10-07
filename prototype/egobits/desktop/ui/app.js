@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     item.append(symbol, body, close); stack.append(item);
     if (kind !== 'error') setTimeout(() => item.remove(), 8000);
   }
-  window.RekordAI = {apiFetch, post, notice, async refreshStatus() { const r=await apiFetch('/api/status'); if(r.ok) {const data=await r.json();showStatus(data);document.getElementById('lib-tracks-count').textContent=`${data.tracks_count} tracks`;document.getElementById('config-xml-path').value=data.demo?'':data.source_path || '';window.dispatchEvent(new CustomEvent('collection-loaded',{detail:data}));} }, setPlan(result) { lastPlanResult = result; renderPlanResults(result); }};
+  window.RekordAI = {apiFetch, post, notice, async refreshStatus() { await loadInitialData(); }, setPlan(result) { lastPlanResult = result; renderPlanResults(result); }};
 
   // Tabs Switching
   const tabBtns = document.querySelectorAll('.tab-btn');
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (rbStateEl) rbStateEl.textContent = data.rekordbox_state.toUpperCase();
         if (tracksCountEl) tracksCountEl.textContent = `${data.tracks_count} tracks`;
         const xmlPathEl = document.getElementById('config-xml-path');
-        if (xmlPathEl && !xmlPathEl.value) xmlPathEl.value = data.demo ? '' : (data.source_path || '');
+        if (xmlPathEl && !xmlPathEl.value) xmlPathEl.value = data.source_kind==='native_snapshot' ? '' : (data.source_path || '');
         showStatus(data);
         window.dispatchEvent(new CustomEvent('collection-loaded', {detail:data}));
 
@@ -585,19 +585,20 @@ document.addEventListener('DOMContentLoaded', () => {
     return result;
   }
   function showStatus(data) {
-    const needsSetup = data.demo || !!data.library_error;
+    const needsSetup = !data.snapshot_revision || !!data.library_error || !!data.collection_connection?.requires_action;
+    document.getElementById('collection-connection-state').textContent=data.collection_connection?.message || data.library_error || 'Colección conectada.';
     document.getElementById('setup-notice').hidden = !needsSetup;
     document.getElementById('open-setup').classList.toggle('needs-attention', needsSetup);
     document.querySelector('[data-tab="tab-config"]').classList.toggle('needs-attention', needsSetup);
     window.dispatchEvent(new CustomEvent('availability-updated', {detail:data}));
     const banner = document.getElementById('runtime-status');
     const llmLabel = {not_started:'disponible bajo demanda',loading:'cargando',ready:'lista',degraded:'no disponible; formulario activo',not_configured:'sin configurar'}[data.llm.state] || data.llm.state;
-    banner.textContent = `${data.demo ? 'DEMOSTRACIÓN · ' : ''}${data.library_error || `${data.tracks_count} pistas de la colección cargada`} · IA: ${llmLabel}`;
+    banner.textContent = `${data.source_kind==='native_snapshot'?'Base viva · ':data.snapshot_revision?'XML · ':''}${data.library_error || `${data.tracks_count} pistas de la colección cargada`} · IA: ${llmLabel}`;
     if (data.settings_error) banner.textContent += ' · ' + data.settings_error;
     if (data.native_operation_active) banner.textContent += ' · Operación sobre la colección en curso: esperá antes de salir o actualizar.';
     document.getElementById('rb-state').textContent = {open:'Abierto',closed:'Cerrado',unknown:'Desconocido'}[data.rekordbox_state] || 'Desconocido';
     if(window.RekordAI.pendingDuplicate && data.native_process_state==='closed'){document.getElementById('duplicate-delete-state').textContent='Rekordbox está cerrado. Podés volver a preparar el respaldo y revisar la eliminación.';document.getElementById('native-close-return').hidden=false;}
-    document.getElementById('native-reason').textContent = 'Crear playlists requiere cerrar Rekordbox y sus agentes, respaldo automático y confirmación. Usá el botón de arriba. Restaurá desde Respaldos y recuperación.';
+    document.getElementById('native-reason').textContent = 'Podés consultar y preparar sets con Rekordbox abierto. Para guardar cambios en su base: revisá la propuesta, solicitá cierre normal y confirmá el respaldo y la escritura.';
     document.getElementById('native-prepare').disabled = data.native_process_state !== 'closed' || data.native_operation_active || data.demo || !data.snapshot_revision;
     document.getElementById('rekordbox-close').disabled = data.native_process_state !== 'open' || data.native_operation_active || window.RekordCloseBusy === true;
     document.getElementById('live-reason').textContent = 'Las recomendaciones sin audio usan una referencia del historial y los filtros guardados de tu colección. Consultá el estado del popup arriba; no se requiere certificar el master para este modo.';
@@ -671,6 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const li = document.createElement('li'); li.textContent = text; list.append(li);
       }
       document.getElementById('discovery-next').textContent = data.next_step;
+      const bases=document.getElementById('collection-databases');bases.replaceChildren();for(const path of data.databases){const option=document.createElement('option');option.value=path;option.textContent=path;bases.append(option);}document.getElementById('collection-db-connect').disabled=!data.databases.length;
       for (const path of data.export_candidates) {
         const button = document.createElement('button'); button.type = 'button'; button.className = 'btn btn-secondary';
         button.textContent = `Usar exportación detectada: ${path}`;
@@ -679,6 +681,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (error) { label.textContent = error.message; }
   }
+  async function connectCollection(button,path=null){button.disabled=true;try{await post(path?'/api/library/native':'/api/library/auto',path?{path}:{});chatReference=null;chatHistory=[];lastPlanResult=null;document.getElementById('btn-export-xml').disabled=true;await loadInitialData();await detectInstallation();notice('Colección conectada en modo lectura.','success');}catch(error){notice(error.message,'error');await window.RekordAI.refreshStatus();}finally{button.disabled=false;}}
+  document.getElementById('collection-auto').onclick=e=>connectCollection(e.currentTarget);
+  document.getElementById('collection-db-connect').onclick=e=>connectCollection(e.currentTarget,document.getElementById('collection-databases').value);
+  document.getElementById('collection-db-manual').onclick=e=>{const path=document.getElementById('collection-db-path').value.trim();if(!path)return notice('Indicá la ruta de master.db.','error');connectCollection(e.currentTarget,path);};
   document.getElementById('rescan').addEventListener('click', detectInstallation);
   document.getElementById('open-setup').addEventListener('click', () => document.querySelector('[data-tab="tab-config"]').click());
   detectInstallation();

@@ -5,7 +5,7 @@ from pathlib import Path
 from egobits.adapters import Library
 from egobits.desktop.live_suggestion import live_suggestion
 from egobits.telemetry.provider import NowPlayingEvent, TelemetryProvider
-from egobits.telemetry.simulator import TelemetrySimulator
+from telemetry_fixture import TelemetrySimulator
 
 
 class FakeRealProvider(TelemetryProvider):

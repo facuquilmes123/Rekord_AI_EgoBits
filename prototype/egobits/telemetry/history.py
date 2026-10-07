@@ -54,7 +54,8 @@ class HistoryObserver:
                 self.seen=None; self.current=None; self.reason='Requiere Rekordbox abierto'
                 return self._result(lib,options)
             try:
-                dbs=self.discover()['databases']
+                selected=getattr(lib,'database_path',None)
+                dbs=[str(selected)] if selected else self.discover()['databases']
                 if len(dbs)!=1: raise PlanningError('Elegí una base: la detección no es única')
                 if dbs[0]!=self.path: self.path=dbs[0]; self.seen=None; self.current=None
                 with connection(self.path) as conn:
@@ -88,7 +89,7 @@ class HistoryObserver:
         base['reference_mode']='last_registered' if self.metadata_mode else 'new_entries'
         if not self.current or (not self.metadata_mode and time.monotonic()-self.changed_at>120) or not lib: return base
         matches=self.path_index.get(path_key(self.current[3]),[])
-        if len(matches)!=1: return {**base,'reason':'La pista registrada no tiene correspondencia única en el XML'}
+        if len(matches)!=1: return {**base,'reason':'La pista registrada no tiene correspondencia única en la colección conectada'}
         try:
             from ..core.recommender import compact_recommendation
             selected_options=options or RecommendationOptions()

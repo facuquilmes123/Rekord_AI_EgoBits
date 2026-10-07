@@ -11,7 +11,6 @@ New-Item -ItemType Directory -Force -Path $stageDir,(Join-Path $rootDir 'output/
 $ErrorActionPreference = 'Continue' # PowerShell 5 trata stderr informativo como NativeCommandError.
 & $Python -m PyInstaller --noconfirm --onefile --clean --name egobits-backend `
     --paths (Join-Path $rootDir 'prototype') --hidden-import egobits.desktop.service `
-    --add-data ((Join-Path $rootDir 'prototype/examples') + ';examples') `
     --add-data ((Join-Path $rootDir 'prototype/egobits/desktop/ui') + ';egobits/desktop/ui') `
     --distpath $backendDist --workpath (Join-Path $buildDir 'pyinstaller') `
     --specpath $buildDir (Join-Path $PSScriptRoot 'backend_entry.py') *> (Join-Path $rootDir 'output/closure/pyinstaller.log')

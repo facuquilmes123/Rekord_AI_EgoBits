@@ -13,12 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const data=await read(`/api/opportunity?id=${encodeURIComponent(id)}&offset=${opportunityOffset}&revision=${encodeURIComponent(opportunityRevision)}`);
       if(sequence!==opportunityRequest)return;
       $('opportunity-title').textContent=`${data.title} · ${data.total} pistas`;
-      $('opportunity-config').textContent=id==='energy'?'Configurar energía':id==='unlisted'?'Preparar un set':'Cargar XML actualizado';
+      $('opportunity-config').textContent=id==='energy'?'Configurar energía':id==='unlisted'?'Preparar un set':'Revisar conexión a la colección';
       $('opportunity-description').textContent=data.description;$('opportunity-instructions').textContent=data.instructions;
       for(const track of data.tracks){
         const row=text('div','','insight-card');row.append(text('p',`${track.artist || 'Sin artista'} — ${track.title} · ID ${track.id} · ${track.bpm ?? 'Sin BPM'} · ${track.key || 'Sin tonalidad'}`));
         const details=text('button','Ver detalles de esta pista','btn btn-secondary');details.type='button';
-        if(track.in_collection===false){details.disabled=true;details.textContent='Actualizá el XML para invocar esta pista';}
+        if(track.in_collection===false){details.disabled=true;details.textContent='Actualizá la conexión a tu colección para invocar esta pista';}
         details.onclick=()=>{$('opportunity-dialog').close();go('tab-chat');$('chat-input').value=`describí pista ${track.id}`;$('chat-input').form.requestSubmit();};
         row.append(details);$('opportunity-tracks').append(row);
       }
@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('availability-updated',event => {
     const data=event.detail; const root=$('availability-overview'); root.replaceChildren();
     for (const [name,available,reason] of [
-      ['Planificar y exportar XML / M3U8',!!data.snapshot_revision,!data.snapshot_revision ? 'Primero cargá una colección.' : data.demo ? 'Disponible con biblioteca de demostración. Cargá tu colección para trabajar con tu música.' : 'Disponible con tu colección cargada.'],
+      ['Planificar y exportar XML / M3U8',!!data.snapshot_revision,!data.snapshot_revision ? 'Primero cargá una colección.' : 'Disponible con tu colección cargada.'],
       ['Recomendar desde una pista elegida',!!data.snapshot_revision,'Elegí una pista de referencia y guardá tus filtros. No requiere escucha automática.'],
       ['Eliminar duplicados verificados',data.native_process_state==='closed' && !!data.snapshot_revision && !data.demo,'Mi colección → Verificar → Elegir porcentaje → Eliminar duplicados. La escritura requiere Rekordbox cerrado, respaldo y confirmación nativa. Metadatos o vínculos distintos quedan protegidos.'],
       ['Popup desde el historial',data.rekordbox_state==='open' && !data.demo && data.tracks_count>0 && data.notifications.enabled && !data.notifications.silenced && data.notifications.history_popup,'Activá el popup del historial y las notificaciones, desactivá silencio y esperá una entrada nueva. Puede tener demora y no confirma el master.'],

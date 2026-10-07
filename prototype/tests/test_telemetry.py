@@ -1,5 +1,6 @@
 import unittest
-from egobits.telemetry import TelemetrySimulator, NowPlayingEvent
+from telemetry_fixture import TelemetrySimulator
+from egobits.telemetry import NowPlayingEvent
 from egobits.policy import capability, State
 
 class TelemetryTests(unittest.TestCase):
@@ -17,7 +18,7 @@ class TelemetryTests(unittest.TestCase):
         self.assertFalse(event.is_fresh(max_age_seconds=5.0))
         self.assertFalse(event.is_audible())
 
-        # Política de recommend.live rechaza cuando la señal no está vigente
+        # PolÃ­tica de recommend.live rechaza cuando la seÃ±al no estÃ¡ vigente
         cap = capability('recommend.live', State.OPEN, snapshot=True, live_fresh=event.is_audible())
         self.assertFalse(cap.enabled)
         self.assertIn('lectura en vivo vigente', cap.reason)
