@@ -8,5 +8,3 @@ def simulated_status(player=1, track_id=42, on_air=True):
     data[0x7b]=3;data[0x89]=0x40 | (8 if on_air else 0);data[0x8d:0x90]=(0x100000).to_bytes(3,'big')
     data[0x92:0x94]=(12800).to_bytes(2,'big');data[0xa0:0xa4]=(129).to_bytes(4,'big');data[0xa6]=1
     return bytes(data)
-
-
