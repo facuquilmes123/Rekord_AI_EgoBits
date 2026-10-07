@@ -10,7 +10,7 @@ from ..core.recommender import RecommendationOptions
 
 DEFAULTS = {
     'library_xml': '', 'energies_json': '', 'llm_enabled': True,
-    'collection_mode':'xml','native_database':'',
+    'collection_mode':'auto','native_database':'',
     'notifications': {'enabled': False, 'silenced': False, 'min_frequency_seconds': 30, 'history_popup':False,'history_reference_mode':'last_registered'},
     'recommendation': vars(RecommendationOptions()),
 }
@@ -33,10 +33,10 @@ class SettingsStore:
     def validate(data):
         if isinstance(data,dict):
             data=deepcopy(data)
-            data.setdefault('collection_mode','xml');data.setdefault('native_database','')
+            data.setdefault('collection_mode','auto');data.setdefault('native_database','')
         if not isinstance(data, dict) or set(data) != set(DEFAULTS):
             raise PlanningError('Estructura de preferencias inválida')
-        if data['collection_mode'] not in ('xml','native'):raise PlanningError('Origen de colección inválido')
+        if data['collection_mode'] not in ('auto','xml','native'):raise PlanningError('Origen de colección inválido')
         for key in ('library_xml', 'energies_json','native_database'):
             if not isinstance(data[key], str) or len(data[key]) > 32768:
                 raise PlanningError(f'{key} debe ser una ruta de texto')

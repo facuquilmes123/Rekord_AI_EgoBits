@@ -29,4 +29,5 @@ with tempfile.TemporaryDirectory(prefix='rekord-ai-tests-') as profile:
     environment={**os.environ,'LOCALAPPDATA':profile}
     for name in ('EGB_LIBRARY_XML','EGB_ENERGIES_JSON','EGB_SESSION_TOKEN','EGB_NATIVE_APPROVAL_KEY','EGB_RESOURCE_ROOT'):
         environment.pop(name,None)
+    environment['EGB_LIBRARY_XML']=str(root/'prototype/examples/library.xml')
     subprocess.run([sys.executable,'-m','unittest','discover','-s','tests','-v'],cwd=root/'prototype',env=environment,check=True)

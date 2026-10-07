@@ -64,7 +64,7 @@ DESCRIPTIONS={
     'audio.measurement':'Leer LUFS y energía estimada ya calculados offline para un ID.',
     'device.list':'Detectar USB DeviceSQL presentes, sin modificar archivos.',
     'device.audit':'Auditar un device_id obtenido de device.list: archivos, análisis y referencias huérfanas.',
-    'link.state':'Consultar receptor o simulación Pro DJ Link; On-Air no certifica audio audible.'}
+    'link.state':'Consultar equipos conectados por Pro DJ Link; On-Air no certifica audio audible.'}
 
 
 def catalog():

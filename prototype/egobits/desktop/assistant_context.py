@@ -35,7 +35,7 @@ def collection_context(lib, query, reference=None):
                         'Energía con fuente acoustic-v1 es un índice heurístico estimado; LUFS mide sonoridad, no energía musical científica.',
                         'No se ejecutaron acciones con esta respuesta.'],
          'available_workflows':['Buscar/parecidos/comparar/auditar/planificar; exportar XML/M3U8.',
-             'Laboratorio DJ: base viva, MyTags/estrellas/reproducciones, cues/frases, análisis acústico local, Key Shift opcional, USB respaldado y simulación Pro DJ Link.',
+             'Herramientas DJ: base viva, MyTags/estrellas/reproducciones, cues/frases, análisis acústico local, Key Shift opcional, USB respaldado y conexión Pro DJ Link.',
              'Crear playlist nativa, cierre asistido y restauración desde Configuración con revisión y respaldo.',
              'Duplicados idénticos: revisión, respaldo, cierre de Rekordbox, consolidación recuperable y restauración. Master audible no certificado.']}
     # Keep prompt within the existing local runtime's context budget.

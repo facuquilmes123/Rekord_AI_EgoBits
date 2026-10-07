@@ -9,7 +9,8 @@ import unittest
 from unittest.mock import Mock,patch
 from egobits.core.models import PlanningError
 from egobits.core.toolbox import execute,run_agent,direct
-from egobits.telemetry.prodj_link import ProDjLink,decode,simulated_status,MAGIC
+from egobits.telemetry.prodj_link import ProDjLink,decode,MAGIC,keepalive,presence_sequence
+from link_frames import simulated_status
 from egobits.adapters.anlz_relocate import relocate,tags
 from egobits.desktop.analysis_jobs import AnalysisJobs
 from test_collection_intelligence import IntelligenceTests
@@ -63,9 +64,10 @@ class ToolboxTests(IntelligenceTests):
 
 
 class LinkTests(unittest.TestCase):
-    def test_decode_freshness_namespaces_and_simulation(self):
-        now=[0];link=ProDjLink(lambda:now[0]);state=link.simulate()
-        self.assertEqual(state['on_air_count'],2);self.assertTrue(state['ambiguous']);self.assertTrue(all(d['simulated'] for d in state['decks']))
+    def test_decode_freshness_and_media_namespaces(self):
+        now=[0];link=ProDjLink(lambda:now[0])
+        link.ingest(simulated_status(),50002,'127.0.0.1');link.ingest(simulated_status(2,42),50002,'127.0.0.2');state=link.snapshot()
+        self.assertEqual(state['on_air_count'],2);self.assertTrue(state['ambiguous'])
         self.assertNotEqual(state['decks'][0]['media_identity'],state['decks'][1]['media_identity'])
         self.assertTrue(all(d['local_track_id'] is None for d in state['decks']))
         self.assertEqual(decode(simulated_status(),50002)['bpm'],128)
@@ -81,8 +83,39 @@ class LinkTests(unittest.TestCase):
         deadline=time.monotonic()+2
         while not link.snapshot()['decks'] and time.monotonic()<deadline:time.sleep(.02)
         self.assertEqual(len(link.snapshot()['decks']),1)
-        self.assertFalse(link.snapshot()['decks'][0]['simulated']);self.assertFalse(link.snapshot()['hardware_verified'])
+        self.assertEqual(link.snapshot()['decks'][0]['address'],'127.0.0.1')
+        self.assertNotIn('hardware_verified',link.snapshot())
         self.assertEqual(link.stop()['mode'],'stopped')
+
+    def test_registration_uses_free_observer_number_and_yields_on_conflict(self):
+        iface={'name':'fixture','address':'192.168.9.1','network':'192.168.9.0/24','broadcast':'192.168.9.255','mac':'02:11:22:33:44:55'}
+        peer={**iface,'address':'192.168.9.2'};now=[0];link=ProDjLink(lambda:now[0],lambda:[iface]);sender=Mock()
+        link.ingest(keepalive(peer,7),50000,peer['address']);now[0]=4
+        with patch('egobits.telemetry.prodj_link.socket.socket') as probe:
+            probe.return_value.__enter__.return_value.getsockname.return_value=(iface['address'],1)
+            link._presence(sender)
+        self.assertEqual(link.number,8);self.assertEqual(link.snapshot()['mode'],'joining');sender.sendto.assert_called_once()
+        frames=presence_sequence(iface,8)
+        self.assertEqual([f[10] for f in frames],[10]*3+[0]*3+[2]*3+[4]*3)
+        self.assertTrue(all(int.from_bytes(f[34:36],'big')==len(f) for f in frames))
+        self.assertEqual(keepalive(iface,8)[53],0x64)
+        collision=bytearray(41);collision[:10]=MAGIC;collision[10]=8;collision[32]=1;collision[34:36]=(41).to_bytes(2,'big');collision[36]=8
+        link.ingest(bytes(collision),50000,peer['address']);self.assertIsNone(link.number);self.assertIn(8,link.blocked_numbers)
+
+    def test_ambiguous_network_never_transmits(self):
+        interfaces=[{'name':'one','address':'192.168.1.1','network':'192.168.1.0/24','broadcast':'192.168.1.255','mac':'02:11:22:33:44:55'},
+                    {'name':'two','address':'192.168.2.1','network':'192.168.2.0/24','broadcast':'192.168.2.255','mac':'02:11:22:33:44:66'}]
+        now=[0];link=ProDjLink(lambda:now[0],lambda:interfaces);sender=Mock()
+        for iface in interfaces:
+            peer={**iface,'address':iface['address'][:-1]+'2'};link.ingest(keepalive(peer,1),50000,peer['address'])
+        now[0]=4;link._presence(sender);sender.sendto.assert_not_called();self.assertEqual(link.mode,'interface_required')
+
+    def test_precise_position_survives_status_refresh_and_expires(self):
+        now=[0];link=ProDjLink(lambda:now[0]);frame=simulated_status();link.ingest(frame,50002,'127.0.0.1')
+        position=bytearray(60);position[:10]=MAGIC;position[10]=11;position[33]=1;position[40:44]=(1200).to_bytes(4,'big');position[56:60]=(1280).to_bytes(4,'big')
+        link.ingest(bytes(position),50001,'127.0.0.1');now[0]=.2;link.ingest(frame,50002,'127.0.0.1')
+        self.assertEqual(link.snapshot()['decks'][0]['position_seconds'],1.2)
+        now[0]=1.1;self.assertIsNone(link.snapshot()['decks'][0]['position_seconds'])
 
 
 class AnlzTests(unittest.TestCase):

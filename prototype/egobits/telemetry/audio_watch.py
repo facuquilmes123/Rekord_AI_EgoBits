@@ -20,7 +20,7 @@ class AudioWatch:
         if candidate_selector is not None:ids=candidate_selector()
         if type(allow_popup) is not bool: raise PlanningError('Preferencia de popup inválida')
         if not isinstance(ids,list) or not 2<=len(ids)<=20 or len(set(ids))!=len(ids) or any(type(i) is not str or i not in lib.tracks for i in ids):
-            raise PlanningError('Seleccioná entre 2 y 20 pistas de la colección para el piloto')
+            raise PlanningError('Seleccioná entre 2 y 20 pistas de la colección para la identificación de audio')
         if type(device) is not int or device not in {d['index'] for d in audio_match.devices()}:
             raise PlanningError('Elegí una salida WASAPI disponible; ASIO puede requerir otra ruta')
         paths={i:local_path(lib.tracks[i].location).resolve(strict=True) for i in ids}

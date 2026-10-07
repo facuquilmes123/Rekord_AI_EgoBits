@@ -6,7 +6,7 @@
   const {port,token}=await window.__TAURI__.core.invoke('backend_info');
   function render(data) {
     if(!data.display){root.replaceChildren();sequence='';source.textContent=data.reason||'Esperando pista de referencia';return;}
-    source.textContent=data.source==='verified_telemetry'?'Pista audible confirmada':data.source==='audio_pilot'?'Audio experimental · master sin certificar':'Referencia del historial · puede tener demora; master sin confirmar';
+    source.textContent=data.source==='verified_telemetry'?'Pista audible confirmada':data.source==='audio_pilot'?'Coincidencia de audio · revisar referencia':'Referencia del historial · puede tener demora; master sin confirmar';
     if(data.source==='rekordbox_history' && data.reference_track)source.textContent=`Referencia: ${data.reference_track.artist} — ${data.reference_track.title} · última registrada, no escucha del master`;
     const signature=JSON.stringify([data.source_revision,data.recommendations]);
     if(signature===sequence)return;

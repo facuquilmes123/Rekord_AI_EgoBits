@@ -1,12 +1,12 @@
 from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Literal
-from .provider import TelemetryProvider, NowPlayingEvent
+from egobits.telemetry.provider import TelemetryProvider, NowPlayingEvent
 
 class TelemetrySimulator(TelemetryProvider):
-    """Simulador de telemetría de cabina para pruebas deterministas y QA."""
+    """Simulador de telemetrÃ­a de cabina para pruebas deterministas y QA."""
     def __init__(self, initial_track_id: str = '1', deck_id: int = 1):
-        self._name = 'Simulador de Telemetría (QA Mode)'
+        self._name = 'Simulador de TelemetrÃ­a (QA Mode)'
         self._available = True
         self._current_track_id = initial_track_id
         self._deck_id = deck_id
@@ -31,7 +31,7 @@ class TelemetrySimulator(TelemetryProvider):
         self._last_observed = datetime.now(timezone.utc).isoformat()
 
     def make_stale(self):
-        """Simula una pérdida de señal configurando la última observación hace 1 hora."""
+        """Simula una pÃ©rdida de seÃ±al configurando la Ãºltima observaciÃ³n hace 1 hora."""
         self._last_observed = '2000-01-01T00:00:00+00:00'
 
     def get_current_state(self) -> NowPlayingEvent | None:

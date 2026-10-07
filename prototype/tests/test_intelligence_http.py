@@ -22,9 +22,7 @@ class IntelligenceHttpTests(SettingsApiTests):
             self.assertEqual(self.post('/api/device/restore/apply',body)[0],400);apply.assert_not_called()
             self.assertEqual(self.post('/api/device/export/apply',body)[0],200);apply.assert_called_once_with('test-proposal')
 
-    def test_simulation_is_marked_and_does_not_confirm_audible_track(self):
-        try:
-            code,data=self.post('/api/link/simulate',{});self.assertEqual(code,200)
-            self.assertEqual(data['mode'],'simulation');self.assertTrue(data['ambiguous'])
-            self.assertFalse(data['hardware_verified']);self.assertTrue(all(d['local_track_id'] is None for d in data['decks']))
-        finally:service._LINK.stop()
+    def test_simulation_is_not_a_production_route(self):
+        code,data=self.post('/api/link/simulate',{});self.assertNotEqual(code,200)
+        with patch.object(service._LINK,'interfaces',return_value=[]):
+            code,data=self.post('/api/link/interfaces',{});self.assertEqual(code,200);self.assertEqual(data['interfaces'],[])

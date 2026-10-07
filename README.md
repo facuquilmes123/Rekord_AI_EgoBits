@@ -1,4 +1,4 @@
-> **0.4.0, 2026-10-06:** Colección viva, MyTags, cues/frases, análisis acústico offline, Key Shift, DeviceSQL respaldado y simulación/receptor Pro DJ Link. [Uso, evidencia y límites](docs/COLECCION_INTELIGENTE_040.md). Actualización directa, sin nuevo Setup.
+> **0.4.1, 2026-10-06:** Base local automática, XML alternativo y conexión real Pro DJ Link con detección de red, registro y recepción. [Uso, evidencia y requisitos](docs/CONEXION_PRODUCTIVA_041.md). Actualización directa, sin nuevo Setup.
 
 > **Desarrollo 0.3.12, 2026-10-06:** Consultas directas ampliadas, escaneo de duplicados por tamaño/prefijo/SHA completo, integridad de IA reutilizada con protección de archivos, recomendaciones compactas, eventos del shell y XML incremental hasta 256 MiB. [Evaluación, mediciones y límites](docs/RENDIMIENTO_0312.md). Actualización directa, sin nuevo Setup.
 
@@ -12,13 +12,13 @@ Asistente DJ para Windows con chat local, planificación de sets, análisis de c
 
 ## Estado actual
 
-**0.4.0**, con lectura nativa y Laboratorio DJ. El último Setup generado es **0.3.9**: [entrega y verificación](docs/RELEASE_039.md). **0.3.5 retirado por fallo de instalación**. El Setup Inno anterior incluye modelo y WebView2; la actualización directa de esta iteración no es un instalador distribuible. Master audible y flujos DJ reales siguen pendientes de certificación.
+**0.4.1**, con base automática y Herramientas DJ. El último Setup generado es **0.3.9**: [entrega y verificación](docs/RELEASE_039.md). **0.3.5 retirado por fallo de instalación**. El Setup Inno anterior incluye modelo y WebView2; la actualización directa de esta iteración no es un instalador distribuible. Master audible y flujos DJ reales siguen pendientes de certificación.
 
 La creación nativa de playlists y la consolidación de duplicados seguros exigen Rekordbox/agentes cerrados, respaldo automático verificado, revisión y confirmación nativa Windows. La restauración verifica integridad y esquema y recupera la música retirada. El XML fuente no se sobrescribe. [Reglas y recuperación de duplicados](docs/DUPLICADOS_SEGUROS_038.md).
 
-El popup por historial se activa con un botón y usa la última referencia registrada, con posible demora, aplicando los filtros guardados de la colección. BPM, género y tonalidad están activos por defecto en preferencias nuevas; las preferencias anteriores se conservan. El piloto WASAPI es optativo y acotado. Ninguno certifica el master audible; los Toasts confirmados requieren un proveedor fiable. La aceptación de un archivo por Windows no demuestra que Rekordbox lo cargó en un deck.
+El popup por historial se activa con un botón y usa la última referencia registrada, con posible demora, aplicando los filtros guardados de la colección. BPM, género y tonalidad están activos por defecto en preferencias nuevas; las preferencias anteriores se conservan. La identificación WASAPI es optativo y acotado. Ninguno certifica el master audible; los Toasts confirmados requieren un proveedor fiable. La aceptación de un archivo por Windows no demuestra que Rekordbox lo cargó en un deck.
 
-## Ejecutar y verificar el prototipo
+## Ejecutar y verificar el backend de desarrollo
 
 Python 3.12+:
 
@@ -27,7 +27,7 @@ cd prototype
 python -m egobits --serve
 ```
 
-Abrir `http://127.0.0.1:8765`. Seleccionar un XML en Configuración. Este modo no permite escritura nativa ni cierre de Rekordbox: esas operaciones requieren el shell Windows autenticado.
+Abrir `http://127.0.0.1:8765`. La base de Rekordbox se detecta automáticamente. XML queda como alternativa en Configuración. Este modo no permite escritura nativa ni cierre de Rekordbox: esas operaciones requieren el shell Windows autenticado.
 
 Desde la raíz:
 
@@ -38,9 +38,9 @@ python installer/build_offline_bundle.py
 python scripts/smoke_local_llm.py
 ```
 
-Dependencias opcionales declaradas: `prototype[ai]` para verificación del sidecar, `prototype[native]` para SQLCipher, `prototype[audio]` para el piloto, `prototype[mcp]` para MCP stdio. El instalador incorpora dependencias y modelo local, sin APIs pagas ni descargas de pesos durante el uso.
+Dependencias opcionales declaradas: `prototype[ai]` para verificación del sidecar, `prototype[native]` para SQLCipher, `prototype[audio]` para identificación de audio, `prototype[mcp]` para MCP stdio. El instalador incorpora dependencias y modelo local, sin APIs pagas ni descargas de pesos durante el uso.
 
-MCP registra 15 herramientas; `collection.tools` describe 12 operaciones compartidas que se invocan mediante `collection.execute`. Configurar `EGB_LIBRARY_XML` y ejecutar `python -m egobits.mcp_server` desde `prototype`. La escritura nativa está reservada a revisión en Windows y no está expuesta al modelo ni por MCP.
+MCP registra 15 herramientas; `collection.tools` describe 12 operaciones compartidas que se invocan mediante `collection.execute`. La detección de base usa las preferencias locales; `EGB_LIBRARY_XML` permite elegir XML explícitamente. Ejecutar `python -m egobits.mcp_server` desde `prototype`. La escritura nativa está reservada a revisión en Windows y no está expuesta al modelo ni por MCP.
 
 ## Documentación
 
@@ -54,3 +54,6 @@ MCP registra 15 herramientas; `collection.tools` describe 12 operaciones compart
 - [Investigación y licencias](docs/INVESTIGACION_ACTUALIZACION.md)
 
 Los informes históricos conservan sus resultados fechados. Windows 10/11 x64 son objetivos de distribución; falta certificar el instalador completo en equipos limpios y los flujos DJ con hardware real.
+
+
+Conexión productiva 0.4.1: [base automática, XML alternativo y equipos Pro DJ Link](docs/CONEXION_PRODUCTIVA_041.md).

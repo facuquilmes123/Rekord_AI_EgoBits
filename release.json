@@ -1,5 +1,5 @@
 {
-  "version": "0.4.0",
+  "version": "0.4.1",
   "app_id": "F57C7090-73DC-453B-96DF-8D9F3E215E10",
   "identifier": "com.egobits.rekordai",
   "app_mutex": "Local\\RekordAIApp",

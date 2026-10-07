@@ -1,4 +1,4 @@
-"""API desktop loopback. Los errores y el modo demostración son explícitos."""
+"""Authenticated desktop loopback with automatic, read-only collection access."""
 from __future__ import annotations
 import atexit
 from contextlib import contextmanager
@@ -51,6 +51,7 @@ _SESSION_TOKEN = None
 _NATIVE_APPROVAL_KEY = os.environ.get('EGB_NATIVE_APPROVAL_KEY')
 _GLOBAL_LIB = None
 _NATIVE_COLLECTION = None
+_CONNECTION = {'state':'detecting','message':'Buscando la colección de Rekordbox.'}
 _MONITOR = ProcessMonitor()
 _LIVE_PROVIDER = None
 _LLAMA_RUNTIME = None
@@ -80,21 +81,52 @@ TOOL_NAMES = ('system.status', 'playlist.list', 'library.search', 'playlist.plan
 
 
 def get_or_load_library(default_xml=None, default_energies=None):
-    global _GLOBAL_LIB,_NATIVE_COLLECTION
+    global _GLOBAL_LIB,_NATIVE_COLLECTION,_CONNECTION
     with _LIB_LOCK:
         settings = _SETTINGS.snapshot()
-        if settings.get('collection_mode')=='native' and not default_xml and not os.environ.get('EGB_LIBRARY_XML'):
+        explicit_xml=default_xml or os.environ.get('EGB_LIBRARY_XML')
+        mode=settings.get('collection_mode','auto')
+        if mode in ('auto','native') and not explicit_xml:
             from ..adapters.native_collection import NativeCollection
             database=settings['native_database']
-            if not database:raise PlanningError('Seleccioná una base local de Rekordbox')
-            if _NATIVE_COLLECTION is None or _NATIVE_COLLECTION.database!=Path(database).resolve():
-                _NATIVE_COLLECTION=NativeCollection(database,_SETTINGS.path.parent/'collection-cache')
-            _GLOBAL_LIB=_NATIVE_COLLECTION.load()
-            return _ANALYSIS.attach(_GLOBAL_LIB)
+            found=None
+            if mode=='auto' or not database or not Path(database).is_file():
+                found=cached_discover()
+                remembered=database if database and Path(database).is_file() and str(Path(database).resolve()) in found['databases'] else ''
+                database=found.get('preferred_database') or (found['databases'][0] if len(found['databases'])==1 else remembered)
+            if database:
+                try:
+                    if _NATIVE_COLLECTION is None or _NATIVE_COLLECTION.database!=Path(database).resolve():
+                        _NATIVE_COLLECTION=NativeCollection(database,_SETTINGS.path.parent/'collection-cache')
+                    library=_NATIVE_COLLECTION.load()
+                    if settings['native_database']!=str(_NATIVE_COLLECTION.database):
+                        _SETTINGS.update({'native_database':str(_NATIVE_COLLECTION.database)})
+                    _GLOBAL_LIB=library
+                    _CONNECTION={'state':'connected','kind':'native','database':str(_NATIVE_COLLECTION.database),
+                                 'message':'Colección viva conectada. Podés consultar con Rekordbox abierto.', 'requires_action':False}
+                    return _ANALYSIS.attach(library)
+                except (OSError,ValueError,TypeError) as exc:
+                    _CONNECTION={'state':'unavailable','kind':'native','message':str(exc)+
+                        ' Reintentá la conexión. Si Rekordbox está realizando una migración, esperá a que termine; también podés elegir un XML como alternativa.',
+                        'requires_action':True}
+                    raise PlanningError(_CONNECTION['message']) from None
+            if found and len(found['databases'])>1:
+                _CONNECTION={'state':'selection_required','message':'Hay varias bases de Rekordbox. Elegí tu colección en Configuración → Colección.',
+                             'candidates':found['databases'],'requires_action':True}
+                raise PlanningError(_CONNECTION['message'])
+            # A configured/detected XML is a real fallback, never a bundled sample.
+            fallback=settings['library_xml'] or (found['export_candidates'][0] if found and len(found.get('export_candidates',[]))==1 else '')
+            if not fallback:
+                _CONNECTION={'state':'not_found','message':'No se encontró la colección de Rekordbox. Abrí Rekordbox al menos una vez y volvé a detectar, o elegí una base trasladada o un XML en Configuración → Colección.', 'requires_action':True}
+                raise PlanningError(_CONNECTION['message'])
+            if _GLOBAL_LIB is not None and _GLOBAL_LIB.source!=Path(fallback).resolve():_GLOBAL_LIB=None
+            explicit_xml=fallback
+            _CONNECTION={'state':'fallback','kind':'xml','message':'No se encontró una base local. Se usa la exportación XML disponible; conectá la base para recibir cambios en vivo.', 'requires_action':True}
         if _GLOBAL_LIB is not None:
             return _ANALYSIS.attach(_GLOBAL_LIB)
-        filename = default_xml or os.environ.get('EGB_LIBRARY_XML') or settings['library_xml']
-        xml_path = Path(filename) if filename else EXAMPLES_DIR / 'library.xml'
+        filename = explicit_xml or settings['library_xml']
+        if not filename:raise PlanningError('Elegí un XML existente o activá la conexión automática a Rekordbox en Configuración → Colección.')
+        xml_path = Path(filename)
         if not xml_path.is_file():
             raise PlanningError(f'XML configurado no encontrado: {xml_path}')
         energy_file = default_energies or os.environ.get('EGB_ENERGIES_JSON') or settings['energies_json']
@@ -103,6 +135,8 @@ def get_or_load_library(default_xml=None, default_energies=None):
             energy_file = EXAMPLES_DIR / 'energies.json'
         energy = json.loads(Path(energy_file).read_text(encoding='utf-8')) if energy_file else None
         _GLOBAL_LIB = Library(xml_path, energy)
+        if _CONNECTION.get('state')!='fallback':
+            _CONNECTION={'state':'connected','kind':'xml','message':'Exportación XML conectada. Refleja los datos de su última exportación.', 'requires_action':False}
         return _ANALYSIS.attach(_GLOBAL_LIB)
 
 
@@ -143,12 +177,12 @@ def recommendation_popup():
         audio=_AUDIO_WATCH.snapshot()
         if audio.get('popup_eligible') and audio.get('source_revision')==lib.revision and audio.get('track_id') in lib.tracks:
             result={**recommend(lib.tracks[audio['track_id']],list(lib.tracks.values()),options),
-                    'source':'audio_pilot','confirmed':False,'reason':'Coincidencia repetida experimental; master sin certificar',
+                    'source':'audio_pilot','confirmed':False,'reason':'Coincidencia repetida de audio; revisá la referencia identificada',
                     'event_id':f"{lib.revision}:audio:{audio['track_id']}"}
         elif notifications['history_popup']:
             result=_HISTORY.poll(lib,options,use_last_registered=notifications['history_reference_mode']=='last_registered')
             result['event_id']=f"{lib.revision}:history:{result.get('history_event_id','')}"
-        else:return {'display':False,'reason':'No hay seguimiento conectado. Activá «Popup desde el historial» o configurá la salida de audio y el seguimiento experimental en Configuración.'}
+        else:return {'display':False,'reason':'No hay seguimiento conectado. Activá «Popup desde el historial» o configurá la salida de audio y el seguimiento de audio en Configuración.'}
     rows=[]
     for track in result.get('recommendations',[]):
         try:
@@ -174,11 +208,12 @@ def status():
     capabilities = {name: vars(capability(name, State(state), snapshot=lib is not None,
                     manual_track_id=True, live_fresh=live.get('confirmed', False),
                     opt_in=settings['notifications']['enabled'])) for name in TOOL_NAMES}
-    return {'app': 'Rekord AI', 'version': '0.4.0', 'rekordbox_state': state,'native_process_state':native_state,
+    return {'app': 'Rekord AI', 'version': '0.4.1', 'rekordbox_state': state,'native_process_state':native_state,
             'snapshot_revision': lib.revision if lib else None,
             'source_path': str(lib.source) if lib else None, 'library_error': error,
             'source_kind':getattr(lib,'source_kind','xml') if lib else None,
             'snapshot_at':getattr(lib,'snapshot_at',None) if lib else None,
+            'collection_connection':dict(_CONNECTION),
             'analysis_job':_ANALYSIS.snapshot(), 'pro_dj_link':_LINK.snapshot(),
             'demo': bool(lib and lib.source == (EXAMPLES_DIR / 'library.xml').resolve()),
             'tracks_count': len(lib.tracks) if lib else 0, 'playlists_count': len(lib.playlists) if lib else 0,
@@ -302,18 +337,37 @@ def verify_native_approval(body, operation):
         raise PlanningError('Confirmación nativa inválida')
 
 
+def selected_native_database(lib=None, found=None):
+    """Bind native operations to the connected, freshly rediscovered database."""
+    found=discover() if found is None else found
+    candidates={Path(p).resolve() for p in found['databases']}
+    selected=getattr(lib,'database_path',None)
+    if selected:
+        selected=Path(selected).resolve()
+        if selected not in candidates:raise PlanningError('La base conectada ya no coincide con la configuración de Rekordbox. Volvé a detectar antes de guardar cambios.')
+        return str(selected)
+    preferred=found.get('preferred_database')
+    if preferred and Path(preferred).resolve() in candidates:return str(Path(preferred).resolve())
+    if len(candidates)==1:return str(next(iter(candidates)))
+    raise PlanningError('Elegí tu base en Configuración → Colección antes de guardar cambios nativos.')
+
+
 def activate_operation_collection(result, field):
-    global _GLOBAL_LIB
+    global _GLOBAL_LIB,_NATIVE_COLLECTION
     if not result.get(field):return
     try:
         with _LIB_LOCK:
+            if _SETTINGS.snapshot()['collection_mode'] in ('auto','native'):
+                _NATIVE_COLLECTION=None;_GLOBAL_LIB=None
+                get_or_load_library();_HISTORY.reset();_AUDIO_WATCH.stop()
+                return
             energy_path=_SETTINGS.snapshot()['energies_json']
             energies=json.loads(Path(energy_path).read_text(encoding='utf-8')) if energy_path else None
             library=Library(Path(result[field]),energies)
             _SETTINGS.update({'library_xml':result[field]})
             _GLOBAL_LIB=library;_HISTORY.reset();_AUDIO_WATCH.stop()
     except (OSError,ValueError):
-        result['collection_reload_warning']='La operación nativa terminó. Cargá el XML indicado manualmente; no se pudo actualizar la vista o sus preferencias.'
+        result['collection_reload_warning']='La operación nativa terminó. Volvé a detectar tu colección en Configuración; no se pudo actualizar la vista o sus preferencias.'
 
 
 class EgoBitsRequestHandler(BaseHTTPRequestHandler):
@@ -404,13 +458,13 @@ class EgoBitsRequestHandler(BaseHTTPRequestHandler):
                 settings=_SETTINGS.snapshot()
                 self.send_json(_HISTORY.poll(lib, RecommendationOptions(**settings['recommendation']),use_last_registered=settings['notifications']['history_reference_mode']=='last_registered'))
             elif path == '/api/native/status':
-                dbs = discover()['databases']
-                if len(dbs) != 1: raise PlanningError('No se identificó una base única')
+                library,_=current_library()
+                database=selected_native_database(library)
                 reason = 'Disponible para crear una playlist con respaldo y revisión.'
                 ready = True
-                try: _NATIVE.guard(Path(dbs[0]).resolve())
+                try: _NATIVE.guard(Path(database))
                 except PlanningError as error: ready=False; reason=str(error)
-                self.send_json({**inspect_native(dbs[0]), 'database':dbs[0], 'write_enabled':ready,'reason':reason})
+                self.send_json({**inspect_native(database), 'database':database, 'write_enabled':ready,'reason':reason})
             elif path == '/api/transactions/backups':
                 self.send_json({'backups': _TRANSACTIONS.backups()})
             elif path == '/api/native/backups':
@@ -477,7 +531,7 @@ class EgoBitsRequestHandler(BaseHTTPRequestHandler):
             self.send_error_json(str(exc))
 
     def do_POST(self):
-        global _GLOBAL_LIB
+        global _GLOBAL_LIB,_CONNECTION
         if not self._authorized():
             self.send_error_json('Acceso denegado', 403)
             return
@@ -500,8 +554,8 @@ class EgoBitsRequestHandler(BaseHTTPRequestHandler):
             if path == '/api/analysis/track':
                 self.send_json(_ANALYSIS.measurements(get_or_load_library(),body.get('track_id')));return
             if path == '/api/link/status':self.send_json(_LINK.snapshot());return
-            if path == '/api/link/simulate':self.send_json(_LINK.simulate());return
-            if path == '/api/link/start':self.send_json(_LINK.start(body.get('bind_address','127.0.0.1')));return
+            if path == '/api/link/interfaces':self.send_json({'interfaces':_LINK.interfaces()});return
+            if path == '/api/link/start':self.send_json(_LINK.start(body.get('bind_address') or 'auto'));return
             if path == '/api/link/stop':self.send_json(_LINK.stop());return
             if path == '/api/device/discover':self.send_json(_USB.discover());return
             if path == '/api/device/backups':self.send_json(_USB.backups());return
@@ -613,19 +667,19 @@ class EgoBitsRequestHandler(BaseHTTPRequestHandler):
                     raise PlanningError('Cargá la biblioteca desde /api/library para validar antes de guardarla')
                 self.send_json(_SETTINGS.update(body))
                 return
-            if path == '/api/library/native':
+            if path in ('/api/library/native','/api/library/auto'):
                 if _NATIVE.lock.locked():raise PlanningError('Esperá a que termine la operación nativa')
                 from ..adapters.native_collection import NativeCollection
                 database=body.get('path')
                 if not database:
-                    databases=discover()['databases']
-                    if len(databases)!=1:raise PlanningError('Seleccioná una base local: detección ausente o ambigua')
-                    database=databases[0]
+                    found=cached_discover(force=True);databases=found['databases']
+                    database=found.get('preferred_database') or (databases[0] if len(databases)==1 else '')
+                    if not database:raise PlanningError(found.get('next_step','No se encontró una base única. Elegí la colección en Configuración.'))
                 if not isinstance(database,str):raise PlanningError('Ruta de base inválida')
                 provider=NativeCollection(database,_SETTINGS.path.parent/'collection-cache')
                 library=provider.load(force=True)
                 with _LIB_LOCK:
-                    _SETTINGS.update({'collection_mode':'native','native_database':str(provider.database)})
+                    _SETTINGS.update({'collection_mode':'native' if body.get('path') else 'auto','native_database':str(provider.database)})
                     globals()['_NATIVE_COLLECTION']=provider
                     _GLOBAL_LIB=library;_HISTORY.reset();_AUDIO_WATCH.stop()
                 self.send_json(status());return
@@ -643,6 +697,7 @@ class EgoBitsRequestHandler(BaseHTTPRequestHandler):
                 with _LIB_LOCK:
                     _SETTINGS.update({'collection_mode':'xml','library_xml': str(source), 'energies_json': str(Path(energy_path).resolve()) if energy_path else ''})
                     _GLOBAL_LIB = library
+                    _CONNECTION={'state':'connected','kind':'xml','message':'Exportación XML conectada. Refleja los datos de su última exportación.', 'requires_action':False}
                     _AUDIO_WATCH.stop()
                     _HISTORY.reset()
                 self.send_json(status())
@@ -654,8 +709,8 @@ class EgoBitsRequestHandler(BaseHTTPRequestHandler):
                 query=sanitize_user_input(query)
                 lib, library_error = current_library()
                 if lib is None or getattr(lib,'source',None) == (EXAMPLES_DIR / 'library.xml').resolve():
-                    reason = library_error or 'Está cargada la biblioteca de demostración.'
-                    self.send_json({'response':f'{reason} Conectá la colección viva desde Laboratorio DJ, o cargá un XML de Rekordbox en Configuración → Colección.',
+                    reason = library_error or 'Conectá tu colección de Rekordbox.'
+                    self.send_json({'response':f'{reason} Revisá la conexión automática o elegí tu colección en Configuración → Colección.',
                                     'applied':False,'answer_mode':'collection_required',
                                     'suggestions':[{'label':'Conectar mi colección','tab':'tab-config','target':'library-form'}]})
                     return
@@ -664,13 +719,13 @@ class EgoBitsRequestHandler(BaseHTTPRequestHandler):
                 if direct is not None:self.send_json(enrich_chat(direct,lib));return
                 import re
                 if toolbox.needs_agent(lib,query):
-                    if not _SETTINGS.snapshot()['llm_enabled']:raise PlanningError('Usá los controles de Laboratorio DJ o activá IA local para combinar consultas')
+                    if not _SETTINGS.snapshot()['llm_enabled']:raise PlanningError('Usá los controles de Herramientas DJ o activá IA local para combinar consultas')
                     with ai_slot():
                         _AGENT_CANCEL.clear()
                         try:result=toolbox.run_agent(lib,query,local_llama_client(),cancelled=_AGENT_CANCEL)
                         except PlanningError:
                             if _LLAMA_RUNTIME:_LLAMA_RUNTIME.stop()
-                            result={'response':'El modelo local no completó esta combinación dentro del límite. Podés realizarla con los filtros y controles de Laboratorio DJ. No se modificó tu colección.','applied':False}
+                            result={'response':'El modelo local no completó esta combinación dentro del límite. Podés realizarla con los filtros y controles de Herramientas DJ. No se modificó tu colección.','applied':False}
                     self.send_json(enrich_chat(result,lib));return
                 from .opportunities import analysis_query,answer_analysis,metadata_query,answer_metadata
                 if lib is not None and analysis_query(query) and not extract_mentions(query):
@@ -722,21 +777,19 @@ class EgoBitsRequestHandler(BaseHTTPRequestHandler):
             elif path == '/api/duplicates/rule':
                 self.send_json(_DUPLICATES.rule(lib, body.get('scan_id'), body.get('threshold')))
             elif path == '/api/duplicates/prepare':
-                if lib.source == (EXAMPLES_DIR/'library.xml').resolve():raise PlanningError('Cargá tu colección real; la demostración no permite cambios nativos')
+                if lib.source == (EXAMPLES_DIR/'library.xml').resolve():raise PlanningError('Cargá tu colección real; la colección de ejemplo no permite cambios nativos')
                 rule=_DUPLICATES.rule(lib,body.get('scan_id'),body.get('threshold'))
-                dbs=discover()['databases']
-                if len(dbs)!=1:raise PlanningError('No se identificó una base única')
+                database=selected_native_database(lib)
                 from ..adapters.duplicate_native import prepare
-                self.send_json(prepare(_NATIVE,lib,rule,dbs[0]))
+                self.send_json(prepare(_NATIVE,lib,rule,database))
             elif path == '/api/native/prepare':
-                if lib.source == (EXAMPLES_DIR/'library.xml').resolve(): raise PlanningError('Cargá tu colección real antes de crear una playlist en Rekordbox. La demostración no permite escritura nativa.')
+                if lib.source == (EXAMPLES_DIR/'library.xml').resolve(): raise PlanningError('Cargá tu colección real antes de crear una playlist en Rekordbox. Elegí tu base o una exportación propia.')
                 if body.get('source_revision') != lib.revision: raise PlanningError('La propuesta pertenece a otra revisión')
-                dbs = discover()['databases']
-                if len(dbs) != 1: raise PlanningError('No se identificó una base única')
-                self.send_json(_NATIVE.prepare(lib,body.get('track_ids'),body.get('name'),dbs[0]))
+                database=selected_native_database(lib)
+                self.send_json(_NATIVE.prepare(lib,body.get('track_ids'),body.get('name'),database))
             elif path == '/api/native/apply':
                 if body.get('source_revision') != lib.revision or digest(lib.source) != lib.revision:
-                    raise PlanningError('El XML cambió. Revisá nuevamente la propuesta.')
+                    raise PlanningError('La colección cambió. Revisá nuevamente la propuesta.')
                 self.send_json(_NATIVE.apply(body.get('token'),lib.revision))
             elif path == '/api/duplicates/delete':
                 if body.get('source_revision')!=lib.revision or digest(lib.source)!=lib.revision:raise PlanningError('La colección cambió; repetí la revisión')

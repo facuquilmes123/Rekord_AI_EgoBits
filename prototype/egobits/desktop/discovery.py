@@ -26,6 +26,7 @@ def cached_discover(*, force=False):
 def discover(environ=None, registry=True):
     env = os.environ if environ is None else environ
     installs, configs, databases, exports, warnings = {}, [], set(), set(), []
+    configured = set()
     def executable(path, version=''):
         p = Path(path)
         if p.is_dir(): p = p / 'rekordbox.exe'
@@ -68,7 +69,7 @@ def discover(environ=None, registry=True):
                 if not folder.is_dir(): continue
                 configs.append(str(folder))
                 db = folder / 'master.db'
-                if db.is_file(): databases.add(str(db))
+                if db.is_file(): databases.add(str(db.resolve()))
                 for settings in folder.glob('*.settings'):
                     if 'backup' in settings.name.lower(): continue
                     try:
@@ -80,7 +81,8 @@ def discover(environ=None, registry=True):
                             if not val: continue
                             if key == 'masterDbDirectory':
                                 db = Path(val) / 'master.db'
-                                if db.is_file(): databases.add(str(db))
+                                if db.is_file():
+                                    databases.add(str(db.resolve()));configured.add(str(db.resolve()))
                             if key == 'CollectionAutoExportXmlFile' and Path(val).is_file(): exports.add(str(Path(val)))
                     except (OSError, ET.ParseError): warnings.append('No se pudo leer una configuración de Rekordbox.')
             options = base / 'rekordboxAgent/storage/options.json'
@@ -88,10 +90,14 @@ def discover(environ=None, registry=True):
                 if options.is_file() and options.stat().st_size < 4_000_000:
                     for row in json.loads(options.read_text(encoding='utf-8')).get('options', []):
                         if isinstance(row, list) and len(row) == 2 and row[0] == 'db-path' and isinstance(row[1], str):
-                            if Path(row[1]).is_file(): databases.add(str(Path(row[1])))
+                            if Path(row[1]).is_file():
+                                databases.add(str(Path(row[1]).resolve()));configured.add(str(Path(row[1]).resolve()))
             except (OSError, ValueError, AttributeError): warnings.append('No se pudo leer la ubicación configurada por Rekordbox Agent.')
+    preferred = next(iter(configured)) if len(configured)==1 else next(iter(databases)) if len(databases)==1 else None
     return {'installations': list(installs.values()), 'configuration_directories': sorted(set(configs)),
             'databases': sorted(databases), 'export_candidates': sorted(exports), 'warnings': warnings,
-            'requires_xml': not exports, 'database_access': 'not_opened',
-            'next_step': 'Elegí el XML exportado de tu colección. Si todavía no existe, en Rekordbox usá Archivo → Exportar colección en formato XML.',
+            'preferred_database':preferred, 'requires_xml':not databases, 'database_access': 'not_opened',
+            'next_step': ('La base local se conecta en modo lectura con Rekordbox abierto o cerrado.' if preferred else
+                          'Hay varias bases. Elegí la colección que usás en Rekordbox.' if databases else
+                          'Abrí Rekordbox al menos una vez para crear su colección, o elegí una base trasladada. También podés cargar una exportación XML.'),
             'compatibility': 'Instalación detectada no implica compatibilidad certificada con su base de datos.'}
