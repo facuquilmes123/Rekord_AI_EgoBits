@@ -30,24 +30,25 @@ class Transition:
 
 @dataclass(frozen=True)
 class PlanOptions:
-    count: int = 10
+    count: int | None = 10
     mode: Literal['bpm', 'energy'] = 'bpm'
     max_bpm_step: float = 3.0
     harmonic: bool = True
     same_genre: bool = False
     avoid_adjacent_artist: bool = True
     beam_width: int = 24
+    allow_insufficient: bool = False
 
     def __post_init__(self):
         if self.mode not in ('bpm', 'energy'):
             raise PlanningError('Modo inválido; debe ser "bpm" o "energy"')
-        if type(self.count) is not int or not 1 <= self.count <= 100:
-            raise PlanningError('Cantidad fuera de 1..100')
+        if self.count is not None and (type(self.count) is not int or self.count < 1):
+            raise PlanningError('Cantidad fuera de rango; debe ser al menos 1')
         if type(self.max_bpm_step) not in (int, float) or not math.isfinite(self.max_bpm_step) or not 0 < self.max_bpm_step <= 30:
             raise PlanningError('Salto BPM inválido')
         if type(self.beam_width) is not int or not 1 <= self.beam_width <= 64:
             raise PlanningError('Ancho de búsqueda inválido')
-        if any(type(value) is not bool for value in (self.harmonic, self.same_genre, self.avoid_adjacent_artist)):
+        if any(type(value) is not bool for value in (self.harmonic, self.same_genre, self.avoid_adjacent_artist, self.allow_insufficient)):
             raise PlanningError('Las restricciones deben ser booleanas')
 
 @dataclass
@@ -61,3 +62,4 @@ class PlanResult:
     duration_sum_seconds: float | None
     warnings: list[str]
     tracks: list[dict]
+    adjustments: list[str] = field(default_factory=list)

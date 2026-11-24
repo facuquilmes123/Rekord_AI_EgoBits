@@ -89,7 +89,8 @@ def plan_playlist(
     max_bpm_step: float = 3.0,
     same_genre: bool = False,
     avoid_adjacent_artist: bool = True,
-    harmonic: bool = True
+    harmonic: bool = True,
+    allow_insufficient: bool = False
 ) -> dict[str, Any]:
     lib = get_library()
     cap = capability('playlist.plan', current_state(), snapshot=True)
@@ -102,7 +103,8 @@ def plan_playlist(
         max_bpm_step=max_bpm_step,
         same_genre=same_genre,
         avoid_adjacent_artist=avoid_adjacent_artist,
-        harmonic=harmonic
+        harmonic=harmonic,
+        allow_insufficient=allow_insufficient
     )
     result = plan(pool_tracks, opts)
     result['source_revision'] = lib.revision

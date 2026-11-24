@@ -100,11 +100,37 @@ fn hold_upgrade_mutex() {
     #[link(name = "kernel32")]
     extern "system" {
         fn CreateMutexW(attributes: *const std::ffi::c_void, owner: i32, name: *const u16) -> *mut std::ffi::c_void;
+        fn GetLastError() -> u32;
+    }
+    #[link(name = "user32")]
+    extern "system" {
+        fn FindWindowW(lpClassName: *const u16, lpWindowName: *const u16) -> *mut std::ffi::c_void;
+        fn ShowWindow(hWnd: *mut std::ffi::c_void, nCmdShow: i32) -> i32;
+        fn SetForegroundWindow(hWnd: *mut std::ffi::c_void) -> i32;
     }
     let name: Vec<u16> = "Local\\RekordAIApp".encode_utf16().chain(Some(0)).collect();
     let handle = unsafe { CreateMutexW(std::ptr::null(), 0, name.as_ptr()) };
     assert!(!handle.is_null(), "No se pudo proteger la actualización de Rekord AI");
+    let err = unsafe { GetLastError() };
+    if err == 183 {
+        let title1: Vec<u16> = "Rekord AI · Asistente DJ Offline".encode_utf16().chain(Some(0)).collect();
+        let mut hwnd = unsafe { FindWindowW(std::ptr::null(), title1.as_ptr()) };
+        if hwnd.is_null() {
+            let title2: Vec<u16> = "Rekord AI".encode_utf16().chain(Some(0)).collect();
+            hwnd = unsafe { FindWindowW(std::ptr::null(), title2.as_ptr()) };
+        }
+        if !hwnd.is_null() {
+            unsafe {
+                ShowWindow(hwnd, 9);
+                SetForegroundWindow(hwnd);
+            }
+            std::process::exit(0);
+        }
+    }
 }
+
+#[cfg(not(windows))]
+fn hold_upgrade_mutex() {}
 
 struct BackendState {
     port: u16,
@@ -194,6 +220,10 @@ fn main() {
         .setup(|app| {
             let backend = start_backend(app)?;
             app.manage(backend);
+            if let Some(main) = app.get_webview_window("main") {
+                let _ = main.show();
+                let _ = main.set_focus();
+            }
             let popup=tauri::WebviewWindowBuilder::new(app,"recommendation",tauri::WebviewUrl::App("live-popup.html".into()))
                 .title("Rekord AI · Próximas pistas").inner_size(440.0,390.0)
                 .visible(false).focused(false).always_on_top(true).resizable(false).skip_taskbar(true).build()?;
@@ -264,6 +294,15 @@ fn main() {
                         }
                         "exit" => handle.exit(0),
                         _ => {}
+                    }
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let tauri::tray::TrayIconEvent::Click { button: tauri::tray::MouseButton::Left, button_state: tauri::tray::MouseButtonState::Up, .. } = event {
+                        let app = tray.app_handle();
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                        }
                     }
                 })
                 .build(app)?;

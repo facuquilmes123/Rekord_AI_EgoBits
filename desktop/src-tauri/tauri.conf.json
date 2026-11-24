@@ -12,7 +12,7 @@
       "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src ipc: http://ipc.localhost http://127.0.0.1:*"
     },
     "windows": [
-      {"label": "main", "title": "Rekord AI", "width": 1200, "height": 820, "minWidth": 900, "minHeight": 640}
+      {"label": "main", "title": "Rekord AI", "width": 1200, "height": 820, "minWidth": 900, "minHeight": 640, "visible": true}
     ]
   },
   "bundle": {

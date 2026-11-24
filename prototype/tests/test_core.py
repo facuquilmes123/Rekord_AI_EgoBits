@@ -15,8 +15,20 @@ class CoreTests(unittest.TestCase):
  def test_impossible_is_not_partial(self):
   with self.assertRaises(PlanningError):plan(self.lib.pool(['ROOT/X','ROOT/Y']),PlanOptions(count=5))
  def test_bad_options(self):
-  for v in [0,-1,101]:
+  for v in [0,-1]:
    with self.assertRaises(PlanningError):PlanOptions(count=v)
+  self.assertEqual(PlanOptions(count=101).count, 101)
+  self.assertEqual(PlanOptions(count=500).count, 500)
+ def test_flexible_mode_allows_insufficient_candidates_and_reports_adjustments(self):
+  r=plan(self.lib.pool(['ROOT/X','ROOT/Y']),PlanOptions(count=10,allow_insufficient=True))
+  self.assertEqual(len(r['track_ids']),6)
+  self.assertTrue(any('insuficientes' in a.lower() for a in r.get('adjustments',[])))
+  self.assertTrue(any('insuficientes' in w.lower() for w in r.get('warnings',[])))
+ def test_flexible_mode_relaxes_when_strict_fails(self):
+  tracks=self.lib.pool(['ROOT/X','ROOT/Y'])
+  r=plan(tracks,PlanOptions(count=4,max_bpm_step=0.5,allow_insufficient=True))
+  self.assertEqual(len(r['track_ids']),4)
+  self.assertTrue(r['adjustments'])
  def test_key_wrap(self):self.assertEqual(harmonic_score('12A','1A'),.85)
  def test_key_relative(self):self.assertEqual(harmonic_score('Am','C'),.9)
  def test_unknown_key_is_unknown(self):self.assertIsNone(harmonic_score('','8A'))

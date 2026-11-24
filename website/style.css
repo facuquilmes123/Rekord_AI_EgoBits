@@ -1,0 +1,448 @@
+/* ===================================================================
+   REKORD AI - Obsidian Kinetic Glass Theme (After Effects Motion Engine)
+   Designed for Professional Rekordbox & Pioneer DJ Workflows
+   =================================================================== */
+
+:root {
+  --bg-deep: #070709;
+  --bg-surface: #0e0e13;
+  --bg-card: rgba(18, 18, 26, 0.75);
+  --bg-glass: rgba(26, 26, 38, 0.5);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-glow: rgba(0, 242, 255, 0.3);
+  
+  --cyan-neon: #00F2FF;
+  --cyan-glow: rgba(0, 242, 255, 0.25);
+  --violet-neon: #8F00FF;
+  --violet-glow: rgba(143, 0, 255, 0.25);
+  --emerald-neon: #10B981;
+  --emerald-glow: rgba(16, 185, 129, 0.25);
+  --amber-neon: #FFB800;
+  --amber-glow: rgba(255, 184, 0, 0.25);
+  
+  --text-main: #F3F4F6;
+  --text-muted: #9CA3AF;
+  --text-dim: #6B7280;
+  
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Reset & Global */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--bg-deep);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Selection */
+::selection {
+  background: var(--cyan-neon);
+  color: #000;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cyan-neon);
+}
+
+/* Scanline Overlay (Subtle Vintage/Hardware Vibe) */
+.scanlines {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.2) 50%
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 99;
+  opacity: 0.25;
+}
+
+/* Background Atmospheric Canvas */
+#ambient-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel:hover {
+  border-color: rgba(0, 242, 255, 0.3);
+  box-shadow: 0 12px 40px -10px rgba(0, 242, 255, 0.12);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 30px -5px var(--cyan-glow), 0 0 2px 1px var(--cyan-neon);
+}
+
+.glow-violet {
+  box-shadow: 0 0 30px -5px var(--violet-glow), 0 0 2px 1px var(--violet-neon);
+}
+
+/* Pulsing Dots */
+.pulse-emerald {
+  box-shadow: 0 0 12px var(--emerald-neon);
+  animation: pulse-ring 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+/* Kinetic Shimmer Animation */
+.shimmer-text {
+  background: linear-gradient(90deg, #FFFFFF 0%, var(--cyan-neon) 50%, var(--violet-neon) 100%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer 6s linear infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* Laser Bloom Button */
+.btn-laser {
+  position: relative;
+  background: linear-gradient(135deg, #00F2FF 0%, #00B4D8 100%);
+  color: #030712;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 20px rgba(0, 242, 255, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+}
+
+.btn-laser::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transform: rotate(30deg);
+  transition: transform 0.6s ease;
+}
+
+.btn-laser:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 35px rgba(0, 242, 255, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+
+.btn-laser:hover::after {
+  transform: rotate(30deg) translate(50%, 50%);
+}
+
+.btn-laser:active {
+  transform: translateY(0);
+}
+
+/* Secondary Button */
+.btn-outline {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--cyan-neon);
+  color: var(--cyan-neon);
+  box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+}
+
+/* Audio Waveform Canvas Box */
+.waveform-container {
+  position: relative;
+  width: 100%;
+  height: 110px;
+  background: #08080c;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+#hero-waveform {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Camelot Wheel Interactive Component */
+.camelot-interactive {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  margin: 0 auto;
+}
+
+.camelot-circle {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px dashed rgba(0, 242, 255, 0.3);
+  animation: rotate-slow 40s linear infinite;
+}
+
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.camelot-node {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  margin-top: -22px;
+  border-radius: 50%;
+  background: #11111a;
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+.camelot-node:hover,
+.camelot-node.active {
+  background: var(--cyan-neon);
+  color: #000;
+  box-shadow: 0 0 20px var(--cyan-neon);
+  transform: scale(1.18);
+  border-color: #FFF;
+  z-index: 10;
+}
+
+.camelot-node.compatible {
+  background: rgba(143, 0, 255, 0.3);
+  border-color: var(--violet-neon);
+  color: #FFF;
+  box-shadow: 0 0 15px var(--violet-glow);
+}
+
+/* Before / After Comparison Slider */
+.comparison-slider-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(0, 242, 255, 0.3);
+}
+
+.comparison-slider-inner {
+  position: relative;
+  width: 100%;
+  height: 520px;
+  background: #000;
+}
+
+@media (max-width: 768px) {
+  .comparison-slider-inner {
+    height: 280px;
+  }
+}
+
+.comparison-image-after,
+.comparison-image-before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  pointer-events: none;
+}
+
+.comparison-image-before-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  border-right: 2px solid var(--cyan-neon);
+  box-shadow: 5px 0 25px rgba(0, 242, 255, 0.5);
+  transition: width 0.05s ease-out;
+}
+
+.comparison-image-before-wrap .comparison-image-before {
+  width: 1000px;
+  max-width: none;
+}
+
+.slider-handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #000;
+  border: 2px solid var(--cyan-neon);
+  box-shadow: 0 0 20px var(--cyan-neon);
+  cursor: ew-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  transition: transform 0.1s ease;
+}
+
+.slider-handle:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+}
+
+/* Interactive Pricing Switcher */
+.pricing-badge-popular {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, var(--cyan-neon), var(--violet-neon));
+  color: #000;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 11px;
+  padding: 4px 16px;
+  border-radius: 9999px;
+  letter-spacing: 0.06em;
+  box-shadow: 0 0 20px rgba(0, 242, 255, 0.6);
+  white-space: nowrap;
+}
+
+/* Modal Windows */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 4, 8, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  background: #0e0e14;
+  border: 1px solid var(--cyan-neon);
+  box-shadow: 0 0 50px -10px rgba(0, 242, 255, 0.3);
+  border-radius: 20px;
+  width: 90%;
+  max-width: 580px;
+  padding: 32px;
+  position: relative;
+  transform: scale(0.92) translateY(20px);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-overlay.active .modal-content {
+  transform: scale(1) translateY(0);
+}
+
+/* Floating DJ Live Badge */
+.live-audio-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+
+.bar {
+  width: 3px;
+  background: var(--cyan-neon);
+  border-radius: 1px;
+  animation: equalize 1s infinite alternate ease-in-out;
+}
+
+.bar:nth-child(1) { height: 30%; animation-delay: 0.1s; }
+.bar:nth-child(2) { height: 80%; animation-delay: 0.25s; }
+.bar:nth-child(3) { height: 50%; animation-delay: 0.4s; }
+.bar:nth-child(4) { height: 100%; animation-delay: 0.15s; }
+.bar:nth-child(5) { height: 60%; animation-delay: 0.35s; }
+
+@keyframes equalize {
+  0% { height: 20%; }
+  100% { height: 100%; }
+}

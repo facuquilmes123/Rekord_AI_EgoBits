@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Rekord AI - The Offline AI Companion for Rekordbox DJs</title>
+<!-- Google Fonts: Plus Jakarta Sans, Inter, JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config as specified in guidelines -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary-container": "#67f4b7",
+            "on-error": "#690005",
+            "on-secondary": "#470083",
+            "on-primary-fixed": "#002022",
+            "surface-container-low": "#1c1b1c",
+            "surface-container": "#201f20",
+            "on-secondary-container": "#f0ddff",
+            "tertiary-fixed-dim": "#4edea3",
+            "on-tertiary": "#003824",
+            "surface-container-high": "#2a2a2b",
+            "on-tertiary-fixed-variant": "#005236",
+            "outline": "#849495",
+            "tertiary-fixed": "#6ffbbe",
+            "inverse-surface": "#e5e2e3",
+            "inverse-on-surface": "#313031",
+            "on-error-container": "#ffdad6",
+            "primary-fixed-dim": "#00dbe7",
+            "surface-bright": "#3a393a",
+            "on-primary-container": "#006a71",
+            "on-surface": "#e5e2e3",
+            "inverse-primary": "#00696f",
+            "primary-container": "#00f2ff",
+            "surface-container-highest": "#353436",
+            "on-surface-variant": "#b9cacb",
+            "surface-container-lowest": "#0e0e0f",
+            "primary": "#e1fdff",
+            "on-primary": "#00363a",
+            "surface-variant": "#353436",
+            "outline-variant": "#3a494b",
+            "secondary-fixed-dim": "#dab9ff",
+            "tertiary": "#e1ffec",
+            "secondary-container": "#8f03ff",
+            "on-tertiary-fixed": "#002113",
+            "background": "#131314",
+            "surface": "#131314",
+            "error-container": "#93000a",
+            "on-primary-fixed-variant": "#004f54",
+            "primary-fixed": "#74f5ff",
+            "error": "#ffb4ab",
+            "surface-dim": "#131314",
+            "secondary-fixed": "#efdbff",
+            "on-secondary-fixed": "#2b0053",
+            "surface-tint": "#00dbe7",
+            "secondary": "#dab9ff",
+            "on-background": "#e5e2e3",
+            "on-tertiary-container": "#006e4b",
+            "on-secondary-fixed-variant": "#6500b8"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-xl": "2.5rem",
+            "gutter-sm": "1rem",
+            "margin": "4rem",
+            "gutter": "1.5rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "margin-mobile": "1.25rem"
+          },
+          "fontFamily": {
+            "headline-md": ["Plus Jakarta Sans"],
+            "label-data-sm": ["JetBrains Mono"],
+            "headline-sm": ["Plus Jakarta Sans"],
+            "body-lg": ["Inter"],
+            "label-data-lg": ["JetBrains Mono"],
+            "body-md": ["Inter"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "display-hero": ["Plus Jakarta Sans"],
+            "display-hero-mobile": ["Plus Jakarta Sans"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "label-data-md": ["JetBrains Mono"],
+            "headline-md-mobile": ["Plus Jakarta Sans"],
+            "body-sm": ["Inter"]
+          },
+          "fontSize": {
+            "headline-md": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "600" }],
+            "label-data-sm": ["11px", { lineHeight: "14px", letterSpacing: "0.06em", fontWeight: "500" }],
+            "headline-sm": ["20px", { lineHeight: "28px", letterSpacing: "-0.01em", fontWeight: "600" }],
+            "body-lg": ["18px", { lineHeight: "28px", letterSpacing: "-0.005em", fontWeight: "400" }],
+            "label-data-lg": ["16px", { lineHeight: "24px", letterSpacing: "0.02em", fontWeight: "600" }],
+            "body-md": ["15px", { lineHeight: "24px", fontWeight: "400" }],
+            "headline-lg": ["48px", { lineHeight: "56px", letterSpacing: "-0.025em", fontWeight: "700" }],
+            "display-hero": ["72px", { lineHeight: "80px", letterSpacing: "-0.03em", fontWeight: "800" }],
+            "display-hero-mobile": ["40px", { lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "800" }],
+            "headline-lg-mobile": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }],
+            "label-data-md": ["13px", { lineHeight: "18px", letterSpacing: "0.04em", fontWeight: "500" }],
+            "headline-md-mobile": ["24px", { lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "600" }],
+            "body-sm": ["13px", { lineHeight: "20px", fontWeight: "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      background-color: #0A0A0B;
+      color: #e5e2e3;
+      overflow-x: hidden;
+    }
+    .kinetic-glow-cyan {
+      box-shadow: 0 8px 32px -4px rgba(0, 242, 255, 0.18), 0 0 1px 1px rgba(0, 242, 255, 0.4);
+    }
+    .kinetic-glow-violet {
+      box-shadow: 0 8px 32px -4px rgba(143, 0, 255, 0.22), 0 0 1px 1px rgba(143, 0, 255, 0.45);
+    }
+    .kinetic-glow-emerald {
+      box-shadow: 0 8px 32px -4px rgba(16, 185, 129, 0.18), 0 0 1px 1px rgba(16, 185, 129, 0.4);
+    }
+    .laser-bloom:hover {
+      box-shadow: 0 0 28px rgba(0, 242, 255, 0.5);
+    }
+    .laser-bloom-violet:hover {
+      box-shadow: 0 0 28px rgba(143, 3, 255, 0.5);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-fixed">
+<!-- ==================== TOP NAVIGATION BAR (FROM SHARED COMPONENT) ==================== -->
+<header class="fixed top-0 inset-x-0 z-50 bg-surface-container-lowest/80 dark:bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.8)]">
+<div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+<!-- Brand Logo -->
+<a class="font-headline-sm text-headline-sm font-bold text-primary tracking-tight flex items-center gap-2 group" href="#">
+<div class="w-10 h-10 rounded-xl bg-surface-container-highest/80 border border-outline-variant flex items-center justify-center relative group-hover:border-primary-container transition-all">
+<span class="material-symbols-outlined text-primary-container group-hover:rotate-12 transition-transform" data-icon="graphic_eq">graphic_eq</span>
+<div class="absolute inset-0 rounded-xl bg-primary-container/10 filter blur-sm -z-10"></div>
+</div>
+<div class="flex flex-col">
+<span class="leading-none text-primary font-bold tracking-tight">Rekord AI</span>
+<span class="font-label-data-sm text-label-data-sm text-primary-fixed-dim opacity-80">v2.4 Offline Core</span>
+</div>
+</a>
+<!-- Desktop Nav Links -->
+<nav class="hidden md:flex items-center gap-8 font-label-data-md text-label-data-md">
+<a class="text-primary font-semibold border-b-2 border-primary-container pb-1" href="#caracteristicas">Características</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors pb-1" href="#modos-ai">Modos AI</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors pb-1" href="#precios">Precios</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors pb-1" href="#faq">FAQ</a>
+</nav>
+<!-- Trailing Action Cluster -->
+<div class="flex items-center gap-4">
+<a class="hidden sm:inline-flex font-label-data-md text-label-data-md text-on-surface-variant hover:text-primary transition-colors px-3 py-1.5 rounded-lg border border-outline-variant/50 hover:border-primary-container/50" href="#login">
+          Login
+        </a>
+<a class="font-label-data-md text-label-data-md font-semibold bg-primary-container text-on-primary-fixed hover:bg-primary-fixed px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all laser-bloom active:scale-[0.98]" href="#download">
+<span class="material-symbols-outlined text-[18px]" data-icon="download_for_offline">download_for_offline</span>
+<span>Descargar para Windows x64</span>
+</a>
+</div>
+</div>
+</header>
+<!-- ==================== HERO SECTION ==================== -->
+<section class="relative pt-32 pb-24 md:pt-40 md:pb-32 overflow-hidden border-b border-outline-variant/30">
+<!-- Atmospheric Background Layers -->
+<div class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(0,242,255,0.12),transparent_70%)]"></div>
+<div class="absolute top-1/4 right-0 w-96 h-96 bg-secondary-container/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+<div class="absolute top-1/3 left-0 w-80 h-80 bg-primary-container/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+<div class="max-w-7xl mx-auto px-6">
+<!-- Top Neon Badges -->
+<div class="flex flex-wrap items-center justify-center gap-3 mb-8">
+<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container-low/90 border border-outline-variant/50 backdrop-blur-md">
+<span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span>
+<span class="font-label-data-sm text-label-data-sm text-tertiary">100% Local / Zero Latency</span>
+</div>
+<div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-secondary-container/20 border border-secondary-container/50 backdrop-blur-md">
+<span class="material-symbols-outlined text-secondary-fixed text-[16px]" data-icon="bolt">bolt</span>
+<span class="font-label-data-sm text-label-data-sm text-secondary-fixed font-semibold">Prueba Gratuita de 10 Días — Sin tarjeta requerida</span>
+</div>
+</div>
+<!-- Hero Headline & Subtitle -->
+<div class="max-w-4xl mx-auto text-center mb-10">
+<h1 class="font-display-hero-mobile md:font-display-hero text-display-hero-mobile md:text-display-hero text-primary tracking-tight mb-6">
+          Tu música. Tu próximo gran set. <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-container via-primary to-secondary-container">100% Offline AI</span> para Rekordbox DJs.
+        </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-3xl mx-auto leading-relaxed">
+          Analiza tu librería local <span class="text-primary font-mono bg-surface-container-high px-2 py-0.5 rounded border border-outline-variant/50">master.db</span> sin subir una sola pista a la nube. Predicciones armónicas en tiempo real, transiciones de frase quirúrgicas y curaduría inteligente directamente en tu cabina o estudio.
+        </p>
+</div>
+<!-- CTA Cluster -->
+<div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+<a class="w-full sm:w-auto font-label-data-lg text-label-data-lg font-bold bg-primary-container text-on-primary-fixed hover:bg-primary-fixed px-8 py-4 rounded-xl flex items-center justify-center gap-3 transition-all laser-bloom active:scale-[0.98]" href="#download">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+<span>Descargar Offline Core (Windows x64)</span>
+<span class="font-label-data-sm text-label-data-sm bg-on-primary-fixed/20 text-on-primary-fixed px-2 py-0.5 rounded">64 MB • Installer</span>
+</a>
+<button class="w-full sm:w-auto font-label-data-lg text-label-data-lg text-on-surface bg-surface-container/60 hover:bg-surface-container-high border border-outline-variant/60 hover:border-primary-container/40 px-6 py-4 rounded-xl flex items-center justify-center gap-2 transition-all backdrop-blur-md active:scale-[0.98]" type="button">
+<span class="material-symbols-outlined text-primary-container" data-icon="play_circle">play_circle</span>
+<span>Ver Demo en Vivo (3 Min)</span>
+</button>
+</div>
+<!-- ==================== PRO DJ FLOATING CHASSIS (CENTRAL HERO PREVIEW) ==================== -->
+<div class="relative max-w-5xl mx-auto rounded-2xl bg-surface-container-lowest/80 border border-outline-variant/50 backdrop-blur-2xl p-4 sm:p-6 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.9)] kinetic-glow-cyan">
+<!-- Hardware Header Strip -->
+<div class="flex flex-wrap items-center justify-between pb-4 mb-4 border-b border-outline-variant/30 gap-3">
+<div class="flex items-center gap-3">
+<span class="flex h-3 w-3 relative">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary-container opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-tertiary-container"></span>
+</span>
+<span class="font-label-data-md text-label-data-md font-semibold text-primary">DECK A (MASTER): BICEP - GLUE (ORIGINAL MIX)</span>
+<span class="font-label-data-sm text-label-data-sm bg-surface-container-high text-tertiary-fixed-dim px-2 py-0.5 rounded border border-outline-variant">SYNC LOCKED</span>
+</div>
+<div class="flex items-center gap-4 font-label-data-sm text-label-data-sm text-on-surface-variant">
+<span>MASTER.DB: <strong class="text-primary font-mono">CONNECTED</strong></span>
+<span>LATENCY: <strong class="text-tertiary-fixed-dim font-mono">0.8 ms</strong></span>
+<span>CORE: <strong class="text-primary-container font-mono">AVX-512 ACTIVE</strong></span>
+</div>
+</div>
+<!-- Telemetry Meters Bar -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+<div class="bg-surface-container-low/70 border border-outline-variant/30 rounded-lg p-3">
+<span class="font-label-data-sm text-label-data-sm text-on-surface-variant block mb-1">TEMPO BPM</span>
+<div class="flex items-baseline gap-2">
+<span class="font-label-data-lg text-label-data-lg text-primary-container font-bold">126.00</span>
+<span class="font-label-data-sm text-label-data-sm text-tertiary-container">±0.0% PITCH</span>
+</div>
+</div>
+<div class="bg-surface-container-low/70 border border-outline-variant/30 rounded-lg p-3">
+<span class="font-label-data-sm text-label-data-sm text-on-surface-variant block mb-1">CAMELOT KEY</span>
+<div class="flex items-baseline gap-2">
+<span class="font-label-data-lg text-label-data-lg text-secondary-fixed font-bold">8A (Am)</span>
+<span class="font-label-data-sm text-label-data-sm text-on-surface-variant">PERFECT HARMONY</span>
+</div>
+</div>
+<div class="bg-surface-container-low/70 border border-outline-variant/30 rounded-lg p-3">
+<span class="font-label-data-sm text-label-data-sm text-on-surface-variant block mb-1">ACOUSTIC ENERGY</span>
+<div class="flex items-baseline gap-2">
+<span class="font-label-data-lg text-label-data-lg text-tertiary-fixed-dim font-bold">-7.4 dB</span>
+<span class="font-label-data-sm text-label-data-sm text-on-surface-variant">LUFS INT</span>
+</div>
+</div>
+<div class="bg-surface-container-low/70 border border-outline-variant/30 rounded-lg p-3">
+<span class="font-label-data-sm text-label-data-sm text-on-surface-variant block mb-1">PHRASE &amp; DROP DETECTION</span>
+<div class="flex items-baseline gap-2">
+<span class="font-label-data-lg text-label-data-lg text-primary font-bold">BAR 64</span>
+<span class="font-label-data-sm text-label-data-sm text-error font-semibold">DROP IN 8 BARS</span>
+</div>
+</div>
+</div>
+<!-- 3-Band Color Waveform (CDJ-3000 Inspired) -->
+<div class="relative bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-4 mb-6 overflow-hidden">
+<div class="flex items-center justify-between text-on-surface-variant mb-2 font-label-data-sm text-label-data-sm">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-[16px]" data-icon="waves">waves</span>
+              3-BAND FREQUENCY SPECTRUM (LOW: BLUE / MID: AMBER / HIGH: WHITE)
+            </span>
+<span class="font-mono text-primary">03:24.12 / 05:42.80</span>
+</div>
+<!-- Waveform SVG Container -->
+<div class="relative h-28 w-full bg-surface-container-lowest rounded flex items-center justify-center overflow-hidden">
+<!-- Grid Lines -->
+<div class="absolute inset-0 flex justify-between pointer-events-none opacity-20">
+<div class="w-px h-full bg-outline"></div>
+<div class="w-px h-full bg-outline"></div>
+<div class="w-px h-full bg-outline"></div>
+<div class="w-px h-full bg-outline"></div>
+<div class="w-px h-full bg-outline"></div>
+<div class="w-px h-full bg-outline"></div>
+<div class="w-px h-full bg-outline"></div>
+</div>
+<!-- Stylized Multi-Band Waveform Bars -->
+<div class="w-full h-full flex items-center gap-[2px] px-2">
+<!-- Bar groups simulating real audio dynamics -->
+<div class="flex-1 flex items-center justify-center h-full gap-[3px]">
+<div class="w-1.5 h-6 bg-cyan-700 rounded-sm"></div>
+<div class="w-1.5 h-12 bg-cyan-500 rounded-sm"></div>
+<div class="w-1.5 h-16 bg-blue-400 rounded-sm"></div>
+<div class="w-1.5 h-8 bg-amber-500 rounded-sm"></div>
+<div class="w-1.5 h-14 bg-blue-500 rounded-sm"></div>
+<div class="w-1.5 h-20 bg-amber-400 rounded-sm"></div>
+<div class="w-1.5 h-10 bg-cyan-400 rounded-sm"></div>
+<!-- Cue Point A -->
+<div class="relative flex flex-col items-center">
+<span class="absolute -top-3 font-label-data-sm text-[9px] bg-primary-container text-on-primary-fixed px-1 rounded font-bold">CUE A</span>
+<div class="w-1.5 h-22 bg-primary-container rounded-sm shadow-[0_0_8px_#00f2ff]"></div>
+</div>
+<div class="w-1.5 h-12 bg-amber-600 rounded-sm"></div>
+<div class="w-1.5 h-16 bg-blue-500 rounded-sm"></div>
+<div class="w-1.5 h-24 bg-amber-300 rounded-sm"></div>
+<div class="w-1.5 h-20 bg-cyan-400 rounded-sm"></div>
+<div class="w-1.5 h-14 bg-amber-500 rounded-sm"></div>
+<div class="w-1.5 h-22 bg-blue-400 rounded-sm"></div>
+<!-- Playhead Needle -->
+<div class="relative flex flex-col items-center z-20">
+<div class="absolute -top-2 w-2 h-2 rotate-45 bg-error"></div>
+<div class="w-[2px] h-28 bg-error shadow-[0_0_12px_#ff5252]"></div>
+</div>
+<div class="w-1.5 h-18 bg-amber-500 rounded-sm"></div>
+<div class="w-1.5 h-24 bg-blue-600 rounded-sm"></div>
+<div class="w-1.5 h-16 bg-amber-400 rounded-sm"></div>
+<!-- Loop Region -->
+<div class="relative flex items-center bg-secondary-container/20 rounded px-1 h-24 border border-secondary-container/60">
+<span class="absolute -top-3 left-1 font-label-data-sm text-[9px] bg-secondary-container text-on-secondary px-1 rounded font-bold">LOOP 16</span>
+<div class="w-1.5 h-20 bg-secondary rounded-sm mr-1"></div>
+<div class="w-1.5 h-14 bg-secondary-fixed rounded-sm mr-1"></div>
+<div class="w-1.5 h-22 bg-secondary rounded-sm mr-1"></div>
+<div class="w-1.5 h-18 bg-secondary-fixed-dim rounded-sm"></div>
+</div>
+<div class="w-1.5 h-14 bg-blue-500 rounded-sm"></div>
+<div class="w-1.5 h-22 bg-amber-500 rounded-sm"></div>
+<div class="w-1.5 h-18 bg-cyan-500 rounded-sm"></div>
+<div class="w-1.5 h-10 bg-amber-400 rounded-sm"></div>
+<div class="w-1.5 h-16 bg-blue-400 rounded-sm"></div>
+<div class="w-1.5 h-8 bg-cyan-600 rounded-sm"></div>
+<div class="w-1.5 h-12 bg-amber-600 rounded-sm"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Camelot Wheel Holographic Wheel & Live Suggestions -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<!-- Camelot Harmonic Navigator -->
+<div class="bg-surface-container-low/80 border border-outline-variant/40 rounded-xl p-4 flex flex-col justify-between">
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-data-sm text-label-data-sm text-on-surface-variant font-semibold">CAMELOT HARMONIC DIAL</span>
+<span class="font-label-data-sm text-label-data-sm text-secondary-fixed font-bold bg-secondary-container/20 px-2 py-0.5 rounded">AUTO-LOCK</span>
+</div>
+<!-- Dial Grid Representation -->
+<div class="grid grid-cols-3 gap-2 text-center my-2">
+<button class="p-2 rounded bg-surface-container border border-outline-variant/30 hover:border-secondary transition-all font-label-data-sm text-label-data-sm text-on-surface-variant">
+                7A <span class="block text-[10px] opacity-60">Dm</span>
+</button>
+<button class="p-2 rounded bg-secondary-container/30 border-2 border-secondary-fixed font-label-data-sm text-label-data-sm text-primary font-bold shadow-[0_0_12px_rgba(143,3,255,0.4)]">
+                8A <span class="block text-[10px] text-secondary-fixed-dim">Am (Activa)</span>
+</button>
+<button class="p-2 rounded bg-surface-container border border-outline-variant/30 hover:border-secondary transition-all font-label-data-sm text-label-data-sm text-on-surface-variant">
+                9A <span class="block text-[10px] opacity-60">Em</span>
+</button>
+<button class="p-2 rounded bg-surface-container border border-outline-variant/30 hover:border-secondary transition-all font-label-data-sm text-label-data-sm text-on-surface-variant">
+                8B <span class="block text-[10px] opacity-60">C Major</span>
+</button>
+<button class="p-2 rounded bg-primary-container/20 border border-primary-container font-label-data-sm text-label-data-sm text-primary font-semibold">
+                +2 Boost <span class="block text-[10px] text-primary-fixed-dim">Energy Jump</span>
+</button>
+<button class="p-2 rounded bg-surface-container border border-outline-variant/30 hover:border-secondary transition-all font-label-data-sm text-label-data-sm text-on-surface-variant">
+                Diagonal <span class="block text-[10px] opacity-60">Mood Shift</span>
+</button>
+</div>
+<span class="font-label-data-sm text-[10px] text-on-surface-variant mt-2 text-center block">Cálculo de compatibilidad en 0.4ms con master.db local</span>
+</div>
+<!-- Suggested Harmonic Transition Card 1 -->
+<div class="bg-surface-container-low/80 border border-outline-variant/40 rounded-xl p-4 flex flex-col justify-between hover:border-primary-container/40 transition-all group">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-data-sm text-label-data-sm text-tertiary-container font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="recommend">recommend</span> 98.4% MATCH
+                </span>
+<span class="font-label-data-sm text-label-data-sm font-mono text-secondary-fixed bg-secondary-container/20 px-1.5 py-0.5 rounded">KEY 8A</span>
+</div>
+<h4 class="font-headline-sm text-base text-primary font-semibold truncate group-hover:text-primary-container transition-colors">Overmono - So U Kno</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-2">126.00 BPM • Energy: -6.9 LUFS</p>
+<p class="font-label-data-sm text-[11px] text-on-surface-variant/80 border-t border-outline-variant/30 pt-2">
+                Punto de mezcla ideal: Intro 16 bars en el Outro de Bicep.
+              </p>
+</div>
+<button class="mt-3 w-full py-1.5 bg-surface-container-high hover:bg-primary-container hover:text-on-primary-fixed text-primary font-label-data-sm text-label-data-sm rounded border border-outline-variant/40 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[14px]" data-icon="queue_music">queue_music</span> Pre-cargar en Deck B
+            </button>
+</div>
+<!-- Suggested Harmonic Transition Card 2 -->
+<div class="bg-surface-container-low/80 border border-outline-variant/40 rounded-xl p-4 flex flex-col justify-between hover:border-secondary/40 transition-all group">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-data-sm text-label-data-sm text-primary-fixed-dim font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="electric_bolt">electric_bolt</span> ENERGY BOOST (+1)
+                </span>
+<span class="font-label-data-sm text-label-data-sm font-mono text-secondary-fixed bg-secondary-container/20 px-1.5 py-0.5 rounded">KEY 9A</span>
+</div>
+<h4 class="font-headline-sm text-base text-primary font-semibold truncate group-hover:text-secondary-fixed transition-colors">Four Tet - Three Drums</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-2">126.00 BPM • Energy: -8.1 LUFS</p>
+<p class="font-label-data-sm text-[11px] text-on-surface-variant/80 border-t border-outline-variant/30 pt-2">
+                Transición de armónicos cruzados. Cero choque de frecuencias bajas.
+              </p>
+</div>
+<button class="mt-3 w-full py-1.5 bg-surface-container-high hover:bg-secondary-container hover:text-on-secondary text-primary font-label-data-sm text-label-data-sm rounded border border-outline-variant/40 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[14px]" data-icon="queue_music">queue_music</span> Pre-cargar en Deck B
+            </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ==================== PRO DJ FEATURES GRID (BENTO CHASSIS) ==================== -->
+<section class="py-24 border-b border-outline-variant/30 bg-surface-container-lowest/50" id="caracteristicas">
+<div class="max-w-7xl mx-auto px-6">
+<div class="text-center max-w-3xl mx-auto mb-16">
+<span class="font-label-data-sm text-label-data-sm text-primary-container uppercase tracking-wider font-bold block mb-2">Arquitectura de Nivel Profesional</span>
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary tracking-tight mb-4">
+          Módulos de Precisión Táctica para DJs
+        </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+          Diseñado exclusivamente para responder a las exigencias extremas del directo: cero cuelgues, lectura en caliente de SQLite y fidelidad acústica absoluta.
+        </p>
+</div>
+<!-- Bento Grid (5 Core Modules) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Module 1: Crate Digger AI (Span 2 Cols) -->
+<div class="md:col-span-2 bg-surface-container-low/70 border border-outline-variant/40 rounded-2xl p-8 backdrop-blur-xl relative overflow-hidden group hover:border-primary-container/50 transition-all">
+<div class="absolute -right-16 -top-16 w-64 h-64 bg-primary-container/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-primary-container/20 transition-all"></div>
+<div class="flex items-center gap-3 mb-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest border border-outline-variant/60 flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[28px]" data-icon="inventory_2">inventory_2</span>
+</div>
+<div>
+<span class="font-label-data-sm text-label-data-sm text-primary-container font-semibold">MÓDULO 01</span>
+<h3 class="font-headline-md-mobile md:font-headline-md text-headline-md-mobile md:text-headline-md text-primary">Crate Digger AI</h3>
+</div>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-secondary-fixed mb-3">Joyas olvidadas en tu master.db</h4>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-xl leading-relaxed mb-6">
+            Rescata pistas altamente compatibles que tienes acumuladas y olvidadas en tu colección de más de 50.000 archivos. Nuestro algoritmo vectorial indexa patrones rítmicos, tonalidad y afinidad de pista sin indexar en la nube y sin duplicidad.
+          </p>
+<div class="flex flex-wrap gap-2">
+<span class="font-label-data-sm text-label-data-sm px-3 py-1 rounded bg-surface-container-high border border-outline-variant/40 text-primary">Zero Clould Upload</span>
+<span class="font-label-data-sm text-label-data-sm px-3 py-1 rounded bg-surface-container-high border border-outline-variant/40 text-primary">Vector Similarity</span>
+<span class="font-label-data-sm text-label-data-sm px-3 py-1 rounded bg-surface-container-high border border-outline-variant/40 text-primary">50k+ Tracks Indexed</span>
+</div>
+</div>
+<!-- Module 2: Live Deck Pilot -->
+<div class="bg-surface-container-low/70 border border-outline-variant/40 rounded-2xl p-8 backdrop-blur-xl relative overflow-hidden group hover:border-secondary-container/50 transition-all">
+<div class="absolute -right-16 -top-16 w-48 h-48 bg-secondary-container/10 rounded-full blur-[70px] pointer-events-none group-hover:bg-secondary-container/20 transition-all"></div>
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest border border-outline-variant/60 flex items-center justify-center text-secondary-fixed mb-4">
+<span class="material-symbols-outlined text-[28px]" data-icon="tune">tune</span>
+</div>
+<span class="font-label-data-sm text-label-data-sm text-secondary-fixed font-semibold">MÓDULO 02</span>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-2">Live Deck Pilot</h3>
+<h4 class="font-label-data-md text-label-data-md text-secondary-fixed-dim mb-3">Key Shift &amp; Phrase Match</h4>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            Sugerencias armónicas instantáneas en menos de 2ms sin necesidad de internet en la cabina. Predice el momento exacto para soltar el Drop sin desajustes de compás.
+          </p>
+</div>
+<!-- Module 3: Bit-by-bit Duplicate Cleaner -->
+<div class="bg-surface-container-low/70 border border-outline-variant/40 rounded-2xl p-8 backdrop-blur-xl relative overflow-hidden group hover:border-tertiary-container/50 transition-all">
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest border border-outline-variant/60 flex items-center justify-center text-tertiary-container mb-4">
+<span class="material-symbols-outlined text-[28px]" data-icon="cleaning_services">cleaning_services</span>
+</div>
+<span class="font-label-data-sm text-label-data-sm text-tertiary-container font-semibold">MÓDULO 03</span>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-2">Duplicate Cleaner</h3>
+<h4 class="font-label-data-md text-label-data-md text-tertiary-fixed-dim mb-3">Hot Cue &amp; Loop Protected</h4>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            Consolida pistas duplicadas en MP3, WAV, AIFF y FLAC sin borrar tus Hot Cues, Memory Cues ni etiquetas de Rekordbox. Fusión no destructiva.
+          </p>
+</div>
+<!-- Module 4: CDJ USB Export Manager -->
+<div class="bg-surface-container-low/70 border border-outline-variant/40 rounded-2xl p-8 backdrop-blur-xl relative overflow-hidden group hover:border-primary-container/50 transition-all">
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest border border-outline-variant/60 flex items-center justify-center text-primary-container mb-4">
+<span class="material-symbols-outlined text-[28px]" data-icon="usb">usb</span>
+</div>
+<span class="font-label-data-sm text-label-data-sm text-primary-container font-semibold">MÓDULO 04</span>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-2">CDJ Export Manager</h3>
+<h4 class="font-label-data-md text-label-data-md text-primary-fixed-dim mb-3">Sincronización Inteligente</h4>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            Empaqueta colecciones optimizadas listas para reproductores Pioneer DJ CDJ-3000, CDJ-2000NXS2 y todo-en-uno XDJ-XZ con playlists predictivas integradas.
+          </p>
+</div>
+<!-- Module 5: Real Acoustic Energy (LUFS) -->
+<div class="bg-surface-container-low/70 border border-outline-variant/40 rounded-2xl p-8 backdrop-blur-xl relative overflow-hidden group hover:border-secondary-container/50 transition-all">
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest border border-outline-variant/60 flex items-center justify-center text-secondary-fixed mb-4">
+<span class="material-symbols-outlined text-[28px]" data-icon="equalizer">equalizer</span>
+</div>
+<span class="font-label-data-sm text-label-data-sm text-secondary-fixed font-semibold">MÓDULO 05</span>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-2">Real Acoustic Energy</h3>
+<h4 class="font-label-data-md text-label-data-md text-secondary-fixed-dim mb-3">Análisis LUFS &amp; Dinámica</h4>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            Supera el análisis RMS básico de Rekordbox. Detecta la densidad espectral percibida y el volumen real para que nunca se caiga la energía de tu pista de baile.
+          </p>
+</div>
+</div>
+</div>
+</section>
+<!-- ==================== COMPATIBILITY & OFFLINE PRIVACY ==================== -->
+<section class="py-20 border-b border-outline-variant/30">
+<div class="max-w-7xl mx-auto px-6">
+<div class="bg-gradient-to-r from-surface-container-low via-surface-container to-surface-container-low border border-outline-variant/50 rounded-2xl p-8 md:p-12 relative overflow-hidden">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+<div class="lg:col-span-7">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded bg-tertiary-container/10 border border-tertiary-container/30 mb-4">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="lock">lock</span>
+<span class="font-label-data-sm text-label-data-sm text-tertiary-container font-semibold">SEGURIDAD OFFLINE PARA GIGS</span>
+</div>
+<h2 class="font-headline-md-mobile md:font-headline-md text-headline-md-mobile md:text-headline-md text-primary mb-4">
+              Sin Internet en el Festival. Sin Nube. Cero Dependencias.
+            </h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 leading-relaxed">
+              En festivales subterráneos o escenarios remotos la cobertura es inexistente. Rekord AI se ejecuta de forma 100% nativa en tu procesador x64, comunicándose directamente con la base de datos SQLite oficial de Pioneer Rekordbox en tu disco local.
+            </p>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 font-label-data-sm text-label-data-sm text-primary">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check_circle">check_circle</span>
+<span>Rekordbox 6 Nativo</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check_circle">check_circle</span>
+<span>Rekordbox 7 Listo</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check_circle">check_circle</span>
+<span>Windows 10 / 11 x64</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check_circle">check_circle</span>
+<span>Pioneer CDJ Engine</span>
+</div>
+</div>
+</div>
+<div class="lg:col-span-5 flex flex-col gap-3">
+<div class="bg-surface-container-lowest/90 border border-outline-variant/60 rounded-xl p-4 font-mono text-xs text-on-surface-variant">
+<div class="text-tertiary-container mb-1">// Rekord AI Offline Engine Check</div>
+<div class="text-on-surface">&gt; SQLite target: %APPDATA%\Pioneer\rekordbox\master.db</div>
+<div class="text-primary-container">&gt; Status: Read/Write Non-Destructive Lock</div>
+<div class="text-secondary-fixed">&gt; Engine threads: 16 (AVX2 Hardware Accelerated)</div>
+<div class="text-tertiary-fixed-dim">&gt; Cloud ping: DISABLED (Safe Air-Gapped Mode)</div>
+</div>
+<div class="bg-surface-container-high/40 border border-outline-variant/30 rounded-xl p-4 flex items-center justify-between">
+<div>
+<span class="font-label-data-sm text-label-data-sm text-on-surface-variant block">VERIFICACIÓN CRIPTOGRÁFICA</span>
+<span class="font-label-data-md text-label-data-md text-primary font-mono font-bold">SHA-256 SECURED BUILD</span>
+</div>
+<span class="font-label-data-sm text-label-data-sm text-tertiary-container font-mono bg-tertiary-container/10 px-2.5 py-1 rounded border border-tertiary-container/30">PASS</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ==================== PRICING SECTION ==================== -->
+<section class="py-24 border-b border-outline-variant/30 bg-surface-container-lowest/30" id="precios">
+<div class="max-w-7xl mx-auto px-6">
+<div class="text-center max-w-3xl mx-auto mb-12">
+<span class="font-label-data-sm text-label-data-sm text-primary-container uppercase tracking-wider font-bold block mb-2">Inversión para el Cabina Profesional</span>
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary tracking-tight mb-4">
+          Planes Diseñados para Cada Escala de Tour
+        </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+          Empieza gratis durante 10 días completos sin registrar tarjeta de crédito. Cancela en cualquier momento con un solo clic.
+        </p>
+<!-- Billing Toggle -->
+<div class="inline-flex items-center gap-3 mt-8 p-1.5 rounded-xl bg-surface-container-low border border-outline-variant/40">
+<button class="font-label-data-md text-label-data-md px-4 py-2 rounded-lg bg-surface-container-high text-primary font-semibold transition-all" id="btn-monthly" type="button">
+            Mensual
+          </button>
+<button class="font-label-data-md text-label-data-md px-4 py-2 rounded-lg text-on-surface-variant hover:text-primary transition-all flex items-center gap-2" id="btn-annual" type="button">
+<span>Anual</span>
+<span class="font-label-data-sm text-[11px] bg-tertiary-container text-on-tertiary px-2 py-0.5 rounded font-bold">Ahorra 2 meses</span>
+</button>
+</div>
+</div>
+<!-- Pricing Cards 3-Column Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+<!-- Tier 1: Club Starter -->
+<div class="bg-surface-container-low/70 border border-outline-variant/40 rounded-2xl p-8 backdrop-blur-xl flex flex-col justify-between hover:border-outline-variant transition-all">
+<div>
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-headline-sm text-headline-sm text-primary">Club Starter</h3>
+<span class="font-label-data-sm text-label-data-sm bg-surface-container-high text-on-surface-variant px-2.5 py-1 rounded">1 LAPTOP DJ</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6">Para DJs residentes y selectores en crecimiento local.</p>
+<div class="flex items-baseline gap-2 mb-6">
+<span class="font-display-hero-mobile text-display-hero-mobile text-primary font-bold">$19</span>
+<span class="font-label-data-md text-label-data-md text-on-surface-variant">/ mes</span>
+</div>
+<ul class="space-y-3 font-body-sm text-body-sm text-on-surface mb-8">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check">check</span>
+<span>1 licencia para laptop DJ</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check">check</span>
+<span>Análisis de hasta 15.000 tracks</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check">check</span>
+<span>Camelot Harmonic Matcher</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check">check</span>
+<span>Soporte Rekordbox 6 y Rekordbox 7</span>
+</li>
+<li class="flex items-center gap-2 text-on-surface-variant opacity-60">
+<span class="material-symbols-outlined text-[18px]" data-icon="close">close</span>
+<span>Duplicate Cleaner no incluido</span>
+</li>
+</ul>
+</div>
+<button class="w-full py-3 rounded-xl bg-surface-container-high hover:bg-surface-bright text-primary font-label-data-md text-label-data-md font-semibold border border-outline-variant/40 transition-all">
+            Empezar con Starter
+          </button>
+</div>
+<!-- Tier 2: Pro DJ (Most Popular) -->
+<div class="bg-surface-container-low/90 border-2 border-primary-container rounded-2xl p-8 backdrop-blur-2xl flex flex-col justify-between relative kinetic-glow-cyan">
+<div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary-container text-on-primary-fixed px-4 py-1 rounded-full font-label-data-sm text-label-data-sm font-bold tracking-wide flex items-center gap-1.5 shadow-[0_0_16px_#00f2ff]">
+<span class="material-symbols-outlined text-[14px]" data-icon="star">star</span>
+            MÁS POPULAR • PRUEBA 10 DÍAS GRATIS
+          </div>
+<div>
+<div class="flex items-center justify-between mb-4 mt-2">
+<h3 class="font-headline-sm text-headline-sm text-primary">Pro DJ</h3>
+<span class="font-label-data-sm text-label-data-sm bg-primary-container/20 text-primary-fixed-dim px-2.5 py-1 rounded font-semibold">3 LAPTOPS</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6">Para touring DJs activos en clubs, festivales y radio shows.</p>
+<div class="flex items-baseline gap-2 mb-6">
+<span class="font-display-hero-mobile text-display-hero-mobile text-primary font-bold">$29</span>
+<span class="font-label-data-md text-label-data-md text-on-surface-variant">/ mes</span>
+</div>
+<ul class="space-y-3 font-body-sm text-body-sm text-on-surface mb-8">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check">check</span>
+<strong class="text-primary font-semibold">3 laptops simultáneas (Cabina + Estudio)</strong>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check">check</span>
+<span>Colección ilimitada de canciones</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check">check</span>
+<span>Live Deck Pilot con predicción de drops</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check">check</span>
+<span>Duplicate Cleaner protegido por Hot Cues</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check">check</span>
+<span>Exportador CDJ USB optimizado a alta velocidad</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check">check</span>
+<span>Soporte prioritario Touring 24/7 en WhatsApp/Discord</span>
+</li>
+</ul>
+</div>
+<button class="w-full py-4 rounded-xl bg-primary-container text-on-primary-fixed hover:bg-primary-fixed font-label-data-md text-label-data-md font-bold transition-all laser-bloom active:scale-[0.98]">
+            Probar Gratis 10 Días (Full Core)
+          </button>
+</div>
+<!-- Tier 3: Lifetime Tour License -->
+<div class="bg-surface-container-low/70 border border-outline-variant/40 rounded-2xl p-8 backdrop-blur-xl flex flex-col justify-between hover:border-secondary-container transition-all">
+<div>
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-headline-sm text-headline-sm text-primary">Lifetime Tour</h3>
+<span class="font-label-data-sm text-label-data-sm bg-secondary-container/20 text-secondary-fixed px-2.5 py-1 rounded font-semibold">PAGO ÚNICO</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6">Para profesionales consagrados que detestan las suscripciones recurrentes.</p>
+<div class="flex items-baseline gap-2 mb-6">
+<span class="font-display-hero-mobile text-display-hero-mobile text-primary font-bold">$199</span>
+<span class="font-label-data-sm text-label-data-sm text-secondary-fixed">pago único para siempre</span>
+</div>
+<ul class="space-y-3 font-body-sm text-body-sm text-on-surface mb-8">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check">check</span>
+<span>Licencia perpetua sin caducidad</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check">check</span>
+<span>Actualizaciones de por vida (Rekordbox 6, 7 y futuras)</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check">check</span>
+<span>Soporte multi-máquina sin restricciones</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check">check</span>
+<span class="text-secondary-fixed font-semibold">Acceso Beta a Stems Offline AI</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]" data-icon="check">check</span>
+<span>Canal directo VIP con ingenieros de audio</span>
+</li>
+</ul>
+</div>
+<button class="w-full py-3.5 rounded-xl bg-secondary-container text-primary hover:bg-secondary-fixed hover:text-on-secondary-fixed font-label-data-md text-label-data-md font-bold transition-all laser-bloom-violet">
+            Obtener Licencia Lifetime
+          </button>
+</div>
+</div>
+</div>
+</section>
+<!-- ==================== TOURING DJ TESTIMONIALS ==================== -->
+<section class="py-24 border-b border-outline-variant/30">
+<div class="max-w-7xl mx-auto px-6">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<span class="font-label-data-sm text-label-data-sm text-secondary-fixed uppercase tracking-wider font-bold block mb-2">Comprobado en Festivales y Clubs Emblemáticos</span>
+<h2 class="font-headline-md-mobile md:font-headline-md text-headline-md-mobile md:text-headline-md text-primary tracking-tight">
+          La Elección de DJs Residentes en Todo el Mundo
+        </h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Testimonial 1 -->
+<div class="bg-surface-container-low/70 border border-outline-variant/40 rounded-2xl p-6 backdrop-blur-xl flex flex-col justify-between">
+<p class="font-body-md text-body-md text-on-surface-variant italic mb-6 leading-relaxed">
+            "En el booth de Fabric no hay margen de error ni cobertura móvil. Rekord AI corre 100% offline y me sugirió gemas en mi propia librería que no pinchaba desde 2018. Las transiciones de tono fueron impecables."
+          </p>
+<div class="flex items-center gap-3 pt-4 border-t border-outline-variant/30">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest border border-outline-variant flex items-center justify-center font-bold text-primary-container">
+              MR
+            </div>
+<div>
+<h4 class="font-headline-sm text-sm text-primary font-semibold">Marco Rossi</h4>
+<span class="font-label-data-sm text-[11px] text-primary-fixed-dim">Residente en Amnesia Ibiza &amp; Fabric London</span>
+</div>
+</div>
+</div>
+<!-- Testimonial 2 -->
+<div class="bg-surface-container-low/70 border border-outline-variant/40 rounded-2xl p-6 backdrop-blur-xl flex flex-col justify-between">
+<p class="font-body-md text-body-md text-on-surface-variant italic mb-6 leading-relaxed">
+            "El módulo Duplicate Cleaner me ahorró 140 GB en mi SSD antes de mi gira en Sudamérica. Lo más increíble es que respetó todos mis Hot Cues y Loops de memoria en mis CDJ-3000 sin corromper la base de datos."
+          </p>
+<div class="flex items-center gap-3 pt-4 border-t border-outline-variant/30">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest border border-outline-variant flex items-center justify-center font-bold text-secondary-fixed">
+              SK
+            </div>
+<div>
+<h4 class="font-headline-sm text-sm text-primary font-semibold">Sven Krauss</h4>
+<span class="font-label-data-sm text-[11px] text-secondary-fixed">Touring DJ • Awakenings / Time Warp</span>
+</div>
+</div>
+</div>
+<!-- Testimonial 3 -->
+<div class="bg-surface-container-low/70 border border-outline-variant/40 rounded-2xl p-6 backdrop-blur-xl flex flex-col justify-between">
+<p class="font-body-md text-body-md text-on-surface-variant italic mb-6 leading-relaxed">
+            "La detección de energía acústica LUFS es muy superior a la barrita de Rekordbox. Ahora sé de verdad qué temas van a hacer estallar el soundsystem en salas grandes sin picos sorpresivos de volumen."
+          </p>
+<div class="flex items-center gap-3 pt-4 border-t border-outline-variant/30">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest border border-outline-variant flex items-center justify-center font-bold text-tertiary-container">
+              EL
+            </div>
+<div>
+<h4 class="font-headline-sm text-sm text-primary font-semibold">Elena Lin</h4>
+<span class="font-label-data-sm text-[11px] text-tertiary-container">Productora &amp; Residente en Berghain Panorama Bar</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ==================== FAQ ACCORDION ==================== -->
+<section class="py-24 border-b border-outline-variant/30 bg-surface-container-lowest/40" id="faq">
+<div class="max-w-4xl mx-auto px-6">
+<div class="text-center mb-16">
+<span class="font-label-data-sm text-label-data-sm text-primary-container uppercase tracking-wider font-bold block mb-2">Respuestas Técnicas</span>
+<h2 class="font-headline-md-mobile md:font-headline-md text-headline-md-mobile md:text-headline-md text-primary tracking-tight">
+          Preguntas Frecuentes de la Comunidad Pro DJ
+        </h2>
+</div>
+<div class="space-y-4">
+<!-- FAQ 1 -->
+<details class="group bg-surface-container-low/80 border border-outline-variant/40 rounded-xl p-5 [&amp;_summary::-webkit-details-marker]:hidden cursor-pointer open:border-primary-container/40">
+<summary class="flex items-center justify-between font-headline-sm text-base text-primary font-semibold">
+<span>¿Requiere conexión a internet activa durante el set en vivo?</span>
+<span class="material-symbols-outlined text-primary-container group-open:rotate-180 transition-transform" data-icon="expand_more">expand_more</span>
+</summary>
+<p class="font-body-md text-body-md text-on-surface-variant mt-3 leading-relaxed">
+            No, en absoluto. Rekord AI incorpora un motor inferencial compilado en C++ con aceleración vectorial SIMD que ejecuta todos los algoritmos localmente en tu CPU. No envía telemetría ni requiere WiFi en cabina.
+          </p>
+</details>
+<!-- FAQ 2 -->
+<details class="group bg-surface-container-low/80 border border-outline-variant/40 rounded-xl p-5 [&amp;_summary::-webkit-details-marker]:hidden cursor-pointer open:border-primary-container/40">
+<summary class="flex items-center justify-between font-headline-sm text-base text-primary font-semibold">
+<span>¿Modifica o altera mis archivos de audio originales?</span>
+<span class="material-symbols-outlined text-primary-container group-open:rotate-180 transition-transform" data-icon="expand_more">expand_more</span>
+</summary>
+<p class="font-body-md text-body-md text-on-surface-variant mt-3 leading-relaxed">
+            No toca el contenido PCM de tus pistas (MP3, WAV, AIFF, FLAC). Únicamente lee de forma no destructiva la base de datos oficial <code class="font-mono text-primary bg-surface-container-high px-1.5 py-0.5 rounded">master.db</code> de Rekordbox y escribe metadatos complementarios en campos certificados por Pioneer DJ.
+          </p>
+</details>
+<!-- FAQ 3 -->
+<details class="group bg-surface-container-low/80 border border-outline-variant/40 rounded-xl p-5 [&amp;_summary::-webkit-details-marker]:hidden cursor-pointer open:border-primary-container/40">
+<summary class="flex items-center justify-between font-headline-sm text-base text-primary font-semibold">
+<span>¿Es compatible tanto con Rekordbox 6 como con el nuevo Rekordbox 7?</span>
+<span class="material-symbols-outlined text-primary-container group-open:rotate-180 transition-transform" data-icon="expand_more">expand_more</span>
+</summary>
+<p class="font-body-md text-body-md text-on-surface-variant mt-3 leading-relaxed">
+            Sí. Rekord AI v2.4 detecta automáticamente las estructuras de esquemas de datos de Rekordbox 6 y Rekordbox 7 en sistemas Windows 10 y Windows 11 x64, adaptando dinámicamente las consultas de clave y rejilla de tiempo.
+          </p>
+</details>
+<!-- FAQ 4 -->
+<details class="group bg-surface-container-low/80 border border-outline-variant/40 rounded-xl p-5 [&amp;_summary::-webkit-details-marker]:hidden cursor-pointer open:border-primary-container/40">
+<summary class="flex items-center justify-between font-headline-sm text-base text-primary font-semibold">
+<span>¿Cómo funciona exactamente la prueba gratuita de 10 días?</span>
+<span class="material-symbols-outlined text-primary-container group-open:rotate-180 transition-transform" data-icon="expand_more">expand_more</span>
+</summary>
+<p class="font-body-md text-body-md text-on-surface-variant mt-3 leading-relaxed">
+            Descargas el instalador para Windows x64, lo ejecutas y accedes a todas las funcionalidades del plan Pro DJ sin restricciones durante 10 días. No se solicita tarjeta ni compromiso de permanencia.
+          </p>
+</details>
+</div>
+</div>
+</section>
+<!-- ==================== FINAL HIGH-IMPACT CTA BANNER ==================== -->
+<section class="py-24 relative overflow-hidden" id="download">
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,rgba(143,0,255,0.15),transparent_70%)] pointer-events-none -z-10"></div>
+<div class="max-w-5xl mx-auto px-6">
+<div class="bg-gradient-to-b from-surface-container-low/90 to-surface-container-lowest/90 border border-primary-container/40 rounded-3xl p-10 md:p-16 text-center backdrop-blur-2xl relative shadow-[0_0_50px_-10px_rgba(0,242,255,0.2)]">
+<span class="font-label-data-sm text-label-data-sm text-primary-container font-mono tracking-widest uppercase block mb-3">LISTO PARA LA CABINA</span>
+<h2 class="font-display-hero-mobile md:font-headline-lg text-display-hero-mobile md:text-headline-lg text-primary tracking-tight mb-6 max-w-2xl mx-auto">
+          Potencia tu Colección de Rekordbox Hoy Mismo.
+        </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl mx-auto mb-10 leading-relaxed">
+          Descarga el núcleo offline completo de 64 MB para Windows x64. Instalación instantánea en menos de 30 segundos.
+        </p>
+<div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+<a class="w-full sm:w-auto font-label-data-lg text-label-data-lg font-bold bg-primary-container text-on-primary-fixed hover:bg-primary-fixed px-10 py-5 rounded-xl flex items-center justify-center gap-3 transition-all laser-bloom active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="download_for_offline">download_for_offline</span>
+<span>Descargar para Windows x64</span>
+<span class="font-label-data-sm text-label-data-sm bg-on-primary-fixed/20 text-on-primary-fixed px-2 py-0.5 rounded">v2.4 Core</span>
+</a>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-6 font-label-data-sm text-label-data-sm text-on-surface-variant">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-tertiary-container text-[16px]" data-icon="verified_user">verified_user</span> SHA-256 Verificado
+          </span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-tertiary-container text-[16px]" data-icon="security">security</span> Cero Telemetría Cloud
+          </span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-tertiary-container text-[16px]" data-icon="memory">memory</span> Requiere Windows 10/11 x64
+          </span>
+</div>
+</div>
+</div>
+</section>
+<!-- ==================== FOOTER (FROM SHARED COMPONENT) ==================== -->
+<footer class="w-full bg-surface-container-lowest dark:bg-surface-container-lowest border-t border-outline-variant/20">
+<div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
+<!-- Brand & Disclaimer -->
+<div class="flex flex-col items-center md:items-start text-center md:text-left gap-2 max-w-xl">
+<span class="font-headline-sm text-headline-sm font-bold text-primary">Rekord AI</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+          © 2025 Rekord AI Technologies. Zero-latency Offline Intelligence. Pioneer DJ and Rekordbox are registered trademarks of AlphaTheta Corporation.
+        </p>
+</div>
+<!-- Links from JSON Component -->
+<nav class="flex flex-wrap items-center justify-center gap-6 font-label-data-sm text-label-data-sm">
+<a class="text-on-surface-variant hover:text-primary transition-colors hover:text-primary-fixed-dim duration-150" href="#privacidad">Privacidad</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors hover:text-primary-fixed-dim duration-150" href="#terminos">Términos de Licencia</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors hover:text-primary-fixed-dim duration-150" href="#changelog">Changelog v2.4</a>
+<a class="text-primary underline flex items-center gap-1.5" href="#status">
+<span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span> Status Offline Core
+        </a>
+<a class="text-on-surface-variant hover:text-primary transition-colors hover:text-primary-fixed-dim duration-150" href="#soporte">Soporte Touring DJs</a>
+</nav>
+</div>
+</footer>
+<!-- Micro-Interactions Script for Pricing Toggle -->
+<script>
+    const btnMonthly = document.getElementById('btn-monthly');
+    const btnAnnual = document.getElementById('btn-annual');
+
+    btnAnnual.addEventListener('click', () => {
+      btnAnnual.classList.add('bg-surface-container-high', 'text-primary', 'font-semibold');
+      btnAnnual.classList.remove('text-on-surface-variant');
+      btnMonthly.classList.remove('bg-surface-container-high', 'text-primary', 'font-semibold');
+      btnMonthly.classList.add('text-on-surface-variant');
+    });
+
+    btnMonthly.addEventListener('click', () => {
+      btnMonthly.classList.add('bg-surface-container-high', 'text-primary', 'font-semibold');
+      btnMonthly.classList.remove('text-on-surface-variant');
+      btnAnnual.classList.remove('bg-surface-container-high', 'text-primary', 'font-semibold');
+      btnAnnual.classList.add('text-on-surface-variant');
+    });
+  </script>
+</body></html>
