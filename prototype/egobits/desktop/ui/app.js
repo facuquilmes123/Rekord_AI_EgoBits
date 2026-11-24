@@ -52,8 +52,16 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.setAttribute('aria-current', 'page');
       const targetId = btn.getAttribute('data-tab');
       document.getElementById(targetId)?.classList.add('active');
+      if (targetId === 'tab-chat') updateLiveCockpit();
     });
   });
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const requestedTab = urlParams.get('tab') || (window.location.hash ? window.location.hash.slice(1) : null);
+  if (requestedTab) {
+    const matchingBtn = document.querySelector(`.tab-btn[data-tab="${requestedTab}"]`);
+    if (matchingBtn) matchingBtn.click();
+  }
 
   // Carga inicial de estado y playlists
   async function loadInitialData() {
@@ -132,17 +140,25 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const countVal = document.getElementById('plan-count').value.trim();
+    const parsedCount = countVal ? parseInt(countVal, 10) : null;
+    if (parsedCount !== null && (Number.isNaN(parsedCount) || parsedCount < 1)) {
+      notice('Indicá una cantidad de pistas válida (al menos 1) o dejala en blanco para incluir todas.', 'error');
+      return;
+    }
+
     const payload = {
       playlists: selectedPaths,
       source: document.getElementById('plan-source').value,
       track_ids: window.RekordAI.selection || [],
       genre: document.getElementById('plan-genre').value,
       mode: document.getElementById('plan-mode').value,
-      count: parseInt(document.getElementById('plan-count').value, 10),
+      count: parsedCount,
       max_bpm_step: parseFloat(document.getElementById('plan-max-step').value),
       harmonic: document.getElementById('plan-harmonic').checked,
       avoid_adjacent_artist: document.getElementById('plan-avoid-artist').checked,
       same_genre: document.getElementById('plan-same-genre').checked,
+      allow_insufficient: document.getElementById('plan-allow-insufficient').checked,
       name: document.getElementById('plan-out-name').value
     };
 
@@ -159,12 +175,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const result = await resp.json();
       if (!resp.ok) {
-        notice('Error en planificación: ' + (result.error || 'No se pudo generar'));
+        let errorMsg = result.error || 'No se pudo generar';
+        if (/candidatos.*insuficientes/i.test(errorMsg) && !payload.allow_insufficient) {
+          notice('Candidatos insuficientes. Podés tildar «Permitir crear si los candidatos son insuficientes» para armar el set con las pistas disponibles.', 'error');
+        } else {
+          notice('Error en planificación: ' + errorMsg);
+        }
         return;
       }
 
       lastPlanResult = result;
       renderPlanResults(result);
+      if (result.adjustments && result.adjustments.length > 0) {
+        notice(`Propuesta calculada: ${result.track_ids.length} pistas acomodadas con ajustes flexibles para cumplir el set.`, 'info');
+      } else {
+        notice(`Propuesta calculada: ${result.track_ids.length} pistas ordenadas exitosamente.`, 'success');
+      }
     } catch (err) {
       notice('Error de conexión con el backend: ' + err.message);
     } finally {
@@ -194,7 +220,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (bpms.length > 0) {
       document.getElementById('metric-bpm-range').textContent = `${Math.min(...bpms)} - ${Math.max(...bpms)}`;
     }
+    const plannedBpms = result.tracks.map(t => Number(t.bpm)).filter(b => Number.isFinite(b) && b > 0);
+    const cbStart = document.getElementById('cabin-bpm-start');
+    if (cbStart) cbStart.textContent = plannedBpms.length ? plannedBpms[0].toFixed(2) : '—';
+    const cbEnd = document.getElementById('cabin-bpm-end');
+    if (cbEnd) cbEnd.textContent = plannedBpms.length > 1 ? plannedBpms[plannedBpms.length - 1].toFixed(2) : '—';
     document.getElementById('metric-score').textContent = result.score;
+
+    // Ajustes aplicados
+    const adjCard = document.getElementById('plan-adjustments-card');
+    const adjList = document.getElementById('adjustments-list');
+    if (adjCard && adjList) {
+      const adjustments = result.adjustments || [];
+      if (adjustments.length > 0) {
+        adjCard.style.display = 'block';
+        adjList.innerHTML = adjustments.map(a => `<li>${escapeHtml(String(a))}</li>`).join('');
+      } else {
+        adjCard.style.display = 'none';
+      }
+    }
 
     // Exclusiones
     const exclCard = document.getElementById('plan-exclusions-card');
@@ -625,6 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('plan-table-container').style.display='none';
       document.getElementById('plan-metrics').style.display='none';
       document.getElementById('plan-exclusions-card').style.display='none';
+      const adjCard = document.getElementById('plan-adjustments-card'); if (adjCard) adjCard.style.display = 'none';
       document.getElementById('plan-empty-state').style.display='block';
       await loadInitialData();
       notice('Colección cargada correctamente.', 'success');
@@ -681,16 +726,98 @@ document.addEventListener('DOMContentLoaded', () => {
   detectInstallation();
   loadInitialData();
   loadSettings().catch(error=>console.warn(error.message));
+  async function updateLiveCockpit() {
+    const cockpit = document.getElementById('live-cockpit');
+    if (!cockpit) return;
+    try {
+      const response = await apiFetch('/api/history-suggestion');
+      if (!response.ok) return;
+      const data = await response.json();
+
+      const pulse = document.getElementById('cockpit-pulse');
+      const statusTitle = document.getElementById('cockpit-status-title');
+      const statusText = document.getElementById('cockpit-status-text');
+      const trackInfo = document.getElementById('cockpit-track-info');
+      const emptyBox = document.getElementById('cockpit-empty');
+      const emptyMsg = document.getElementById('cockpit-empty-msg');
+      const btnRec = document.getElementById('btn-cockpit-rec');
+
+      if (!data.connected) {
+        if (pulse) pulse.className = 'status-pulse pulse-off';
+        if (statusTitle) statusTitle.textContent = 'Modo offline';
+        if (statusText) statusText.textContent = data.reason || 'Rekordbox cerrado';
+        if (trackInfo) trackInfo.style.display = 'none';
+        if (emptyBox) emptyBox.style.display = 'block';
+        if (emptyMsg) emptyMsg.textContent = 'Rekordbox cerrado. Abrí Rekordbox para activar telemetría en tiempo real, o usá el asistente para planificar tu colección.';
+        if (btnRec) btnRec.style.display = 'none';
+        return;
+      }
+
+      if (data.reference_track) {
+        const t = data.reference_track;
+        if (pulse) pulse.className = 'status-pulse pulse-on';
+        if (statusTitle) statusTitle.textContent = 'En vivo · Rekordbox';
+        if (statusText) statusText.textContent = 'Pista activa en historial';
+        if (trackInfo) trackInfo.style.display = 'flex';
+        if (emptyBox) emptyBox.style.display = 'none';
+
+        const titleEl = document.getElementById('cockpit-title');
+        const artistEl = document.getElementById('cockpit-artist');
+        const bpmEl = document.getElementById('cockpit-bpm');
+        const keyEl = document.getElementById('cockpit-key');
+        const genreEl = document.getElementById('cockpit-genre');
+
+        if (titleEl) titleEl.textContent = t.title || 'Sin título';
+        if (artistEl) artistEl.textContent = t.artist || 'Sin artista';
+        if (bpmEl) bpmEl.textContent = t.bpm != null ? `${Number(t.bpm).toFixed(1)} BPM` : '—';
+        if (keyEl) keyEl.textContent = t.key || '—';
+        if (genreEl) genreEl.textContent = t.genre || 'Sin género';
+
+        if (btnRec) {
+          btnRec.style.display = 'inline-flex';
+          btnRec.onclick = () => {
+            const chatInput = document.getElementById('chat-input');
+            if (chatInput) {
+              chatInput.value = `¿Qué pistas de mi colección combinan bien con ${t.artist} - ${t.title}?`;
+              chatInput.focus();
+              chatInput.form.requestSubmit();
+            }
+          };
+        }
+      } else {
+        if (pulse) pulse.className = 'status-pulse pulse-waiting';
+        if (statusTitle) statusTitle.textContent = 'Rekordbox detectado';
+        if (statusText) statusText.textContent = 'Esperando reproducción';
+        if (trackInfo) trackInfo.style.display = 'none';
+        if (emptyBox) emptyBox.style.display = 'block';
+        if (emptyMsg) emptyMsg.textContent = data.reason || 'Reproducí una pista en Rekordbox (se sincroniza automáticamente tras ~30s de reproducción).';
+        if (btnRec) btnRec.style.display = 'none';
+      }
+    } catch (_) {}
+  }
+
   let refreshing=false;
   function pollStatus() {
     setInterval(async()=>{
       if(refreshing || document.hidden)return;
       refreshing=true;
-      try {const response=await apiFetch('/api/status');if(response.ok)showStatus(await response.json());}
+      try {
+        const response=await apiFetch('/api/status');
+        if(response.ok)showStatus(await response.json());
+        await updateLiveCockpit();
+      }
       catch(error){document.getElementById('runtime-status').textContent='Servicio local no disponible';}
       finally{refreshing=false;}
     },5000);
   }
-  if(window.__TAURI__)window.__TAURI__.event.listen('backend-status',event=>showStatus(event.payload)).catch(()=>pollStatus());
-  else pollStatus();
+  if(window.__TAURI__) {
+    window.__TAURI__.event.listen('backend-status',event=>{
+      showStatus(event.payload);
+      updateLiveCockpit();
+    }).catch(()=>pollStatus());
+    updateLiveCockpit();
+  } else {
+    pollStatus();
+    updateLiveCockpit();
+  }
 });

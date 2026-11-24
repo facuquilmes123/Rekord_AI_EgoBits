@@ -605,7 +605,7 @@ class EgoBitsRequestHandler(BaseHTTPRequestHandler):
                 return
             lib = get_or_load_library()
             if path == '/api/plan':
-                options = PlanOptions(**{key: body[key] for key in ('count', 'mode', 'max_bpm_step', 'harmonic', 'same_genre', 'avoid_adjacent_artist') if key in body})
+                options = PlanOptions(**{key: body[key] for key in ('count', 'mode', 'max_bpm_step', 'harmonic', 'same_genre', 'avoid_adjacent_artist', 'allow_insufficient') if key in body and body[key] is not None})
                 if body.get('source') == 'collection':
                     pool = list(lib.tracks.values())
                 elif body.get('source') == 'selected':

@@ -81,27 +81,54 @@ def plan(tracks: list[Track], opt: PlanOptions) -> dict[str, Any]:
         else:
             valid.append(t)
 
-    if len(valid) < opt.count:
-        raise PlanningError(
-            f'Candidatos válidos insuficientes: {len(valid)}; pedidos: {opt.count}; exclusiones: {dict(Counter(excluded.values()))}'
-        )
+    target_count = opt.count if opt.count is not None else len(valid)
+    adjustments: list[str] = []
+
+    if len(valid) < target_count:
+        if not opt.allow_insufficient:
+            raise PlanningError(
+                f'Candidatos válidos insuficientes: {len(valid)}; pedidos: {target_count}; exclusiones: {dict(Counter(excluded.values()))}'
+            )
+        if len(valid) < target_count and (opt.harmonic or opt.same_genre):
+            recoverable = []
+            for t in unique_tracks:
+                if t.id not in {v.id for v in valid}:
+                    if t.bpm is not None and (opt.mode != 'energy' or (t.energy is not None and t.energy_source)):
+                        recoverable.append(t)
+            if recoverable:
+                to_add = recoverable[:target_count - len(valid)]
+                valid.extend(to_add)
+                for t in to_add:
+                    excluded.pop(t.id, None)
+                adjustments.append(
+                    f'Se incluyeron {len(to_add)} pistas con metadatos parciales para alcanzar la cantidad pedida.'
+                )
+
+        if len(valid) == 0:
+            raise PlanningError('No hay candidatos válidos disponibles para planificar.')
+
+        if len(valid) < target_count:
+            adjustments.append(
+                f'Candidatos insuficientes: se solicitaron {target_count} pistas, pero solo había {len(valid)} disponibles en las fuentes seleccionadas. Se acomodaron las {len(valid)} pistas disponibles.'
+            )
+            target_count = len(valid)
 
     def axis(t: Track) -> float:
         val = t.bpm if opt.mode == 'bpm' else t.energy
         return val if val is not None else 0.0
 
     valid.sort(key=lambda t: (axis(t), t.id))
-    candidate_total=len(valid)
-    if candidate_total>1000:
+    candidate_total = len(valid)
+    if candidate_total > 1000 and target_count <= 1000:
         # Representative deterministic positions across the complete valid axis.
         # This remains a bounded search and never relaxes a requested constraint.
-        valid=[valid[i*(candidate_total-1)//999] for i in range(1000)]
+        valid = [valid[i * (candidate_total - 1) // 999] for i in range(1000)]
     lo, hi = axis(valid[0]), axis(valid[-1])
     span = max(hi - lo, 1.0)
     beams: list[tuple[float, tuple[Track, ...]]] = [(0.0, tuple())]
 
-    for pos in range(opt.count):
-        target = lo + (hi - lo) * pos / max(opt.count - 1, 1)
+    for pos in range(target_count):
+        target = lo + (hi - lo) * pos / max(target_count - 1, 1)
         next_beams: list[tuple[float, tuple[Track, ...]]] = []
         for score, path in beams:
             used = {t.id for t in path}
@@ -126,34 +153,90 @@ def plan(tracks: list[Track], opt: PlanOptions) -> dict[str, Any]:
                 s = score - abs(axis(t) - target) / span + (0.25 * (hs or 0) if prev else 0)
                 next_beams.append((s, path + (t,)))
         if not next_beams:
-            raise PlanningError(
-                'No se encontró una secuencia completa con esta búsqueda limitada; no se relajaron las restricciones. Ampliá el conjunto o cambiá una condición.'
-            )
-        beams = heapq.nsmallest(opt.beam_width,next_beams,key=lambda x: (-x[0], tuple(t.id for t in x[1])))
+            if not opt.allow_insufficient:
+                raise PlanningError(
+                    'No se encontró una secuencia completa con esta búsqueda limitada; no se relajaron las restricciones. Ampliá el conjunto o cambiá una condición.'
+                )
+            for score, path in beams:
+                used = {t.id for t in path}
+                prev = path[-1] if path else None
+                remaining = [t for t in valid if t.id not in used]
+                for t in remaining:
+                    s = score - abs(axis(t) - target) / span
+                    if prev:
+                        hs = harmonic_score(prev.key, t.key)
+                        if opt.harmonic:
+                            if hs is not None and hs > 0:
+                                s += 0.25 * hs
+                            else:
+                                s -= 5.0
+                        if opt.avoid_adjacent_artist and t.artist and prev.artist and t.artist.casefold() == prev.artist.casefold():
+                            s -= 10.0
+                        if opt.same_genre and t.genre != prev.genre:
+                            s -= 10.0
+                        bpm_delta = abs((t.bpm or 0) - (prev.bpm or 0))
+                        if bpm_delta > opt.max_bpm_step:
+                            s -= 25.0 + 5.0 * (bpm_delta - opt.max_bpm_step)
+                        if axis(t) < axis(prev):
+                            s -= 50.0 + 10.0 * (axis(prev) - axis(t))
+                    next_beams.append((s, path + (t,)))
+
+        beams = heapq.nsmallest(opt.beam_width, next_beams, key=lambda x: (-x[0], tuple(t.id for t in x[1])))
 
     score, chosen = beams[0]
     transitions = []
-    for a, b in zip(chosen, chosen[1:]):
+    for i, (a, b) in enumerate(zip(chosen, chosen[1:]), start=1):
+        hs = harmonic_score(a.key, b.key)
+        bpm_delta = round((b.bpm or 0) - (a.bpm or 0), 3)
         transitions.append({
             'from': a.id,
             'to': b.id,
-            'bpm_delta': round((b.bpm or 0) - (a.bpm or 0), 3),
-            'harmonic': harmonic_score(a.key, b.key),
+            'bpm_delta': bpm_delta,
+            'harmonic': hs,
             'energy_delta': None if a.energy is None or b.energy is None else round(b.energy - a.energy, 3)
         })
+        if opt.allow_insufficient:
+            if axis(b) < axis(a):
+                adjustments.append(
+                    f'Transición #{i} -> #{i+1} («{a.title}» -> «{b.title}»): BPM no ascendente ({a.bpm} -> {b.bpm} BPM) para poder incorporar la pista al set.'
+                )
+            elif abs((b.bpm or 0) - (a.bpm or 0)) > opt.max_bpm_step:
+                adjustments.append(
+                    f'Transición #{i} -> #{i+1} («{a.title}» -> «{b.title}»): salto de BPM de {round(abs((b.bpm or 0) - (a.bpm or 0)), 1)} BPM supera el máximo de {opt.max_bpm_step} BPM.'
+                )
+            if opt.harmonic and (hs is None or hs == 0):
+                adjustments.append(
+                    f'Transición #{i} -> #{i+1} («{a.title}» -> «{b.title}»): salto armónico ({a.key or "sin clave"} -> {b.key or "sin clave"}) por falta de tonalidad Camelot adyacente.'
+                )
+            if opt.avoid_adjacent_artist and a.artist and b.artist and a.artist.casefold() == b.artist.casefold():
+                adjustments.append(
+                    f'Transición #{i} -> #{i+1}: artista repetido de forma consecutiva («{a.artist}»).'
+                )
+            if opt.same_genre and a.genre != b.genre:
+                adjustments.append(
+                    f'Transición #{i} -> #{i+1}: cambio de género («{a.genre or "desconocido"}» -> «{b.genre or "desconocido"}»).'
+                )
+
     durations = [t.duration for t in chosen]
+    warnings = (
+        ([f'La colección tiene {candidate_total} candidatas válidas; se usó una preselección representativa de 1000. Una secuencia posible puede quedar fuera de esta búsqueda acotada.'] if candidate_total > 1000 and target_count <= 1000 else [])
+        + adjustments
+        + [
+            'La duración suma pistas completas; no calcula solapamientos.',
+            'La compatibilidad armónica es una regla de selección, no una garantía perceptual.'
+        ]
+    )
     return {
         'track_ids': [t.id for t in chosen],
         'mode': opt.mode,
         'score': round(score, 4),
         'transitions': transitions,
         'excluded': excluded,
-        'algorithm': 'bounded_beam_v2',
-        'candidate_total':candidate_total,'candidate_count':len(valid),
+        'adjustments': adjustments,
+        'algorithm': 'bounded_beam_v2' if not adjustments else 'bounded_beam_flexible_v2',
+        'candidate_total': candidate_total,
+        'candidate_count': len(valid),
         'duration_sum_seconds': sum(durations) if all(x is not None for x in durations) else None,
-        'warnings': ([f'La colección tiene {candidate_total} candidatas válidas; se usó una preselección representativa de 1000. Una secuencia posible puede quedar fuera de esta búsqueda acotada.'] if candidate_total>1000 else []) + [
-            'La duración suma pistas completas; no calcula solapamientos.',
-            'La compatibilidad armónica es una regla de selección, no una garantía perceptual.'
-        ],
+        'warnings': warnings,
         'tracks': [vars(t) for t in chosen]
     }

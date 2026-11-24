@@ -183,12 +183,12 @@ document.addEventListener('DOMContentLoaded', () => {
     ]) { const card=text('div','','availability-card'); card.append(text('strong',`${available ? '✓' : '○'} ${name}`),text('span',available ? 'Disponible' : 'Pendiente','availability-state'),text('p',reason)); root.append(card); }
   });
   // Guided configuration builds a reviewable proposal; it never exports automatically.
-  let step=0; const wizard={source:'collection',count:10,genre:'',mode:'bpm',harmonic:true,artist:true,maxStep:3,name:'Mi próximo set'};
+  let step=0; const wizard={source:'collection',count:10,genre:'',mode:'bpm',harmonic:true,artist:true,allowInsufficient:false,maxStep:3,name:'Mi próximo set'};
   function wizardField(label,type,id,value,options) {
     const group=text('div','','form-group'); const caption=text('label',label); caption.htmlFor=id;
     const field=document.createElement(type==='select' ? 'select' : 'input'); field.id=id;
     if(type==='select') for(const [label,val] of options) field.append(new Option(label,val)); else field.type=type;
-    field.value=value; if(type==='number') {field.min='1';field.max=id==='wiz-count' ? '100' : '30';}
+    field.value=value; if(type==='number') {field.min='1';if(id!=='wiz-count')field.max='30';}
     group.append(caption,field); $('wizard-content').append(group); return field;
   }
   function renderWizard() {
@@ -207,17 +207,17 @@ document.addEventListener('DOMContentLoaded', () => {
       const mode=wizardField('Curva','select','wiz-mode',wizard.mode,[['Subir BPM','bpm'],['Subir energía verificada','energy']]);
       if ($('plan-mode').querySelector('[value="energy"]').disabled) mode.querySelector('[value="energy"]').disabled=true;
       wizardField('Salto máximo entre canciones (BPM)','number','wiz-step',wizard.maxStep);
-      for(const [label,id,value] of [['Compatibilidad de tonalidad Camelot','wiz-harmonic',wizard.harmonic],['Evitar artista consecutivo','wiz-artist',wizard.artist]]) { const row=text('label',label,'checkbox-item'); const input=document.createElement('input');input.type='checkbox';input.id=id;input.checked=value;row.prepend(input);$('wizard-content').append(row); }
+      for(const [label,id,value] of [['Compatibilidad de tonalidad Camelot','wiz-harmonic',wizard.harmonic],['Evitar artista consecutivo','wiz-artist',wizard.artist],['Permitir crear si los candidatos son insuficientes','wiz-insufficient',wizard.allowInsufficient]]) { const row=text('label',label,'checkbox-item'); const input=document.createElement('input');input.type='checkbox';input.id=id;input.checked=value;row.prepend(input);$('wizard-content').append(row); }
     } else {
       $('wizard-title').textContent='Revisá tu idea antes de crearla';
       $('wizard-content').append(text('p',`${wizard.name} · ${wizard.count} pistas · ${wizard.genre || 'todos los géneros'} · ${wizard.mode === 'bpm' ? 'BPM ascendente' : 'energía creciente'} · salto máximo ${wizard.maxStep} BPM.`));
-      $('wizard-content').append(text('p','La propuesta usará pistas de la colección cargada. Si no hay suficientes canciones compatibles, te pediré ajustar condiciones; no relajaré tus filtros. Después podrás revisarla y exportarla.','hint'));
+      $('wizard-content').append(text('p','La propuesta usará pistas de la colección cargada. Si faltan candidatos o canciones compatibles, el modo flexible acomoda las pistas disponibles y reporta los ajustes. Después podrás revisarla y exportarla.','hint'));
     }
   }
   function saveWizard() {
     if(step===0) wizard.source=$('wiz-source').value;
-    if(step===1) {wizard.name=$('wiz-name').value.trim();wizard.genre=$('wiz-genre').value;wizard.count=Number($('wiz-count').value);if(!wizard.name || !Number.isInteger(wizard.count) || wizard.count<1 || wizard.count>100) throw new Error('Indicá un nombre y de 1 a 100 pistas.');}
-    if(step===2) {wizard.mode=$('wiz-mode').value;wizard.maxStep=Number($('wiz-step').value);wizard.harmonic=$('wiz-harmonic').checked;wizard.artist=$('wiz-artist').checked;if(!Number.isFinite(wizard.maxStep) || wizard.maxStep<=0 || wizard.maxStep>30) throw new Error('El salto de BPM debe ser mayor a 0 y no superar 30.');}
+    if(step===1) {wizard.name=$('wiz-name').value.trim();wizard.genre=$('wiz-genre').value;wizard.count=Number($('wiz-count').value);if(!wizard.name || !Number.isInteger(wizard.count) || wizard.count<1) throw new Error('Indicá un nombre y al menos 1 pista.');}
+    if(step===2) {wizard.mode=$('wiz-mode').value;wizard.maxStep=Number($('wiz-step').value);wizard.harmonic=$('wiz-harmonic').checked;wizard.artist=$('wiz-artist').checked;wizard.allowInsufficient=$('wiz-insufficient').checked;if(!Number.isFinite(wizard.maxStep) || wizard.maxStep<=0 || wizard.maxStep>30) throw new Error('El salto de BPM debe ser mayor a 0 y no superar 30.');}
   }
   $('open-wizard').addEventListener('click',()=>{step=0;renderWizard();$('wizard-dialog').showModal();});
   $('wizard-back').addEventListener('click',()=>{step--;renderWizard();});
@@ -225,10 +225,10 @@ document.addEventListener('DOMContentLoaded', () => {
     try {saveWizard(); if(step<3) {step++;renderWizard();return;}
       $('wizard-next').disabled=true;
       const playlists=Array.from(document.querySelectorAll('[name="selected_playlist"]:checked')).map(i=>i.value);
-      const result=await api.post('/api/plan',{source:wizard.source,playlists,track_ids:selected.map(t=>t.id),genre:wizard.genre,count:wizard.count,mode:wizard.mode,max_bpm_step:wizard.maxStep,harmonic:wizard.harmonic,avoid_adjacent_artist:wizard.artist});
+      const result=await api.post('/api/plan',{source:wizard.source,playlists,track_ids:selected.map(t=>t.id),genre:wizard.genre,count:wizard.count,mode:wizard.mode,max_bpm_step:wizard.maxStep,harmonic:wizard.harmonic,avoid_adjacent_artist:wizard.artist,allow_insufficient:wizard.allowInsufficient});
       $('plan-source').value=wizard.source; $('plan-count').value=wizard.count; $('plan-mode').value=wizard.mode;
       $('plan-max-step').value=wizard.maxStep; $('plan-harmonic').checked=wizard.harmonic;
-      $('plan-avoid-artist').checked=wizard.artist; $('plan-genre').value=wizard.genre;
+      $('plan-avoid-artist').checked=wizard.artist; $('plan-allow-insufficient').checked=wizard.allowInsufficient; $('plan-genre').value=wizard.genre;
       $('plan-source').dispatchEvent(new Event('change'));
       $('plan-out-name').value=wizard.name;api.setPlan(result);$('wizard-dialog').close();api.notice('Propuesta lista. Revisá canciones y transiciones antes de exportar.','success');
     } catch(error) {api.notice(error.message,'error');}

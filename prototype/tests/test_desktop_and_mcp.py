@@ -48,6 +48,11 @@ class DesktopAndMcpTests(unittest.TestCase):
         self.assertEqual(len(res['track_ids']), 4)
         self.assertEqual(res['mode'], 'bpm')
 
+    def test_mcp_plan_playlist_flexible(self):
+        res = plan_playlist(['ROOT/X', 'ROOT/Y'], count=10, mode='bpm', allow_insufficient=True)
+        self.assertEqual(len(res['track_ids']), 6)
+        self.assertTrue(res['adjustments'])
+
     def test_mcp_compare_tool(self):
         res = compare_playlists_tool('ROOT/X', 'ROOT/Y')
         self.assertEqual(res['common_count'], 1)
