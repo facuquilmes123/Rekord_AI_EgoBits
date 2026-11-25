@@ -75,7 +75,7 @@ Ver [protocolo ejecutable y manual](PROTOCOLO_WINDOWS_REKORDBOX.md). `test_porta
 Abrir **PowerShell como administrador** y ejecutar:
 
 ```powershell
-& 'C:\Users\facun\Desktop\MCP REKORDBOX\Rekord_AI_EgoBits\installer\install_msvc_admin.ps1'
+& '.\installer\install_msvc_admin.ps1'
 ```
 
 Avisar el resultado. El script instala C++ Build Tools/SDK mediante el bootstrap Microsoft firmado. Código 3010 indica reinicio pendiente. Después se podrá continuar la compilación real y corregir errores Rust; hasta entonces no hay certificación de Tauri ni instaladores.

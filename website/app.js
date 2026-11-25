@@ -1,6 +1,6 @@
 /**
- * REKORD AI - Interactive Experience Engine (After Effects Web Motion)
- * Handles: Waveform Canvas, Camelot Harmonics, Before/After Slider, Pricing & Trial Modal
+ * REKORD AI - Interactive Experience Engine
+ * Handles: Ambient Particles, Waveform Canvas, Camelot Harmonics, Before/After Slider, Smooth Scroll
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -8,8 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initWaveformVisualizer();
   initCamelotWheel();
   initBeforeAfterSlider();
-  initPricingSwitcher();
-  initTrialModal();
   initSmoothScroll();
 });
 
@@ -343,99 +341,13 @@ function initBeforeAfterSlider() {
 }
 
 /* ==========================================================================
-   5. INTERACTIVE PRICING SWITCHER (MENSUAL / ANUAL)
-   ========================================================================== */
-function initPricingSwitcher() {
-  const btnMonthly = document.getElementById('btn-monthly');
-  const btnAnnual = document.getElementById('btn-annual');
-  const priceStarter = document.getElementById('price-starter');
-  const pricePro = document.getElementById('price-pro');
-  const priceLifetime = document.getElementById('price-lifetime');
-  const periodEls = document.querySelectorAll('.price-period');
-
-  if (!btnMonthly || !btnAnnual) return;
-
-  btnMonthly.addEventListener('click', () => {
-    btnMonthly.className = 'font-mono text-sm px-4 py-2 rounded-lg bg-surface-container-high text-cyan-400 font-bold shadow-lg transition-all';
-    btnAnnual.className = 'font-mono text-sm px-4 py-2 rounded-lg text-gray-400 hover:text-white transition-all flex items-center gap-2';
-
-    if (priceStarter) priceStarter.textContent = '$19';
-    if (pricePro) pricePro.textContent = '$29';
-    if (priceLifetime) priceLifetime.textContent = '$199';
-    periodEls.forEach(el => el.textContent = '/ mes');
-  });
-
-  btnAnnual.addEventListener('click', () => {
-    btnAnnual.className = 'font-mono text-sm px-4 py-2 rounded-lg bg-surface-container-high text-cyan-400 font-bold shadow-lg transition-all flex items-center gap-2';
-    btnMonthly.className = 'font-mono text-sm px-4 py-2 rounded-lg text-gray-400 hover:text-white transition-all';
-
-    // 2 months discount (annual price computed per month)
-    if (priceStarter) priceStarter.textContent = '$15';
-    if (pricePro) pricePro.textContent = '$24';
-    if (priceLifetime) priceLifetime.textContent = '$169';
-    periodEls.forEach(el => el.textContent = '/ mes (facturado anual)');
-  });
-}
-
-/* ==========================================================================
-   6. 10-DAY FREE TRIAL INSTANT ACTIVATION MODAL
-   ========================================================================== */
-function initTrialModal() {
-  const modal = document.getElementById('trial-modal');
-  const openButtons = document.querySelectorAll('.trigger-trial-modal');
-  const closeButton = document.getElementById('close-trial-modal');
-  const tokenDisplay = document.getElementById('trial-token-display');
-  const copyBtn = document.getElementById('copy-token-btn');
-
-  if (!modal) return;
-
-  openButtons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      // Generate randomized DJ session trial token
-      const randomKey = Math.random().toString(36).substring(2, 6).toUpperCase();
-      const randomCamelot = ['8A', '9A', '11B', '4A', '7A'][Math.floor(Math.random() * 5)];
-      const token = `RKRDAI-VIP-${randomCamelot}-${randomKey}-10DAYS`;
-
-      if (tokenDisplay) tokenDisplay.textContent = token;
-      modal.classList.add('active');
-    });
-  });
-
-  if (closeButton) {
-    closeButton.addEventListener('click', () => {
-      modal.classList.remove('active');
-    });
-  }
-
-  // Click backdrop to close
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) modal.classList.remove('active');
-  });
-
-  // Copy button
-  if (copyBtn && tokenDisplay) {
-    copyBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(tokenDisplay.textContent).then(() => {
-        copyBtn.textContent = '¡Copiado!';
-        copyBtn.classList.add('bg-emerald-500', 'text-black');
-        setTimeout(() => {
-          copyBtn.textContent = 'Copiar Licencia';
-          copyBtn.classList.remove('bg-emerald-500', 'text-black');
-        }, 2000);
-      });
-    });
-  }
-}
-
-/* ==========================================================================
-   7. SMOOTH SCROLLING FOR NAVIGATION
+   5. SMOOTH SCROLLING FOR NAVIGATION
    ========================================================================== */
 function initSmoothScroll() {
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
       const targetId = this.getAttribute('href');
-      if (targetId === '#' || targetId === '#download' || targetId === '#login') return;
+      if (targetId === '#' || targetId === '#login') return;
       
       const targetEl = document.querySelector(targetId);
       if (targetEl) {

@@ -1,0 +1,11 @@
+name: Feature Request
+description: Propose a new DJ workflow, hardware integration, or AI capability
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Feature Idea
+      description: What problem does it solve for DJs or MCP workflows?
+    validations:
+      required: true

@@ -16,21 +16,32 @@ research/downloads/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .venv/
 venv/
+*.egg-info/
 
-# Local configuration, collections, and credentials
+# Local configuration, collections, binaries, and credentials
 .env
 .env.*
 *.db
 *.db-*
 *.sqlite*
 *.gguf
+*.onnx
+*.safetensors
+*.exe
+*.msi
+*.dll
+*.zip
+*.tar.gz
 *.pem
 *.p12
 *.pfx
 *.key
 settings.json
+propuesta_*.xml
 *.log
 *.tmp
 

@@ -147,12 +147,13 @@ class LocalLlamaRuntime:
     """Inicia llama-server local en puerto efímero, tras verificar ambos hashes."""
 
     def __init__(self, executable: Path, model: Path, binary_hash: str, model_hash: str,
-                 runtime_assets: list[tuple[Path, str]] | None = None):
+                 runtime_assets: list[tuple[Path, str]] | None = None, gpu_layers: int = 0):
         self.executable, self.model = executable, model
         self.binary_hash, self.model_hash = binary_hash.lower(), model_hash.lower()
         self.process: subprocess.Popen | None = None
         self.client: LlamaSidecarClient | None = None
         self.runtime_assets = runtime_assets or []
+        self.gpu_layers = max(0, int(gpu_layers))
         self.verified_assets=VerifiedAssets()
         self.integrity_metrics={}
 
@@ -182,7 +183,7 @@ class LocalLlamaRuntime:
         self.process = subprocess.Popen(
             [str(self.executable), '--model', str(self.model), '--host', '127.0.0.1',
              '--port', str(port), '--ctx-size', '4096', '--threads', str(min(8,max(2,(os.cpu_count() or 4)//2))),
-             '--n-gpu-layers', '0', '--no-webui', '--offline', '--no-agent', '--no-slots',
+             '--n-gpu-layers', str(self.gpu_layers), '--no-webui', '--offline', '--no-agent', '--no-slots',
              '--cors-origins', 'localhost', '--parallel', '1', '--reasoning', 'off'],
             env=sidecar_environment(api_key),
             stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,

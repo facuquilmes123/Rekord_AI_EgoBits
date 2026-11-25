@@ -226,21 +226,42 @@ def status():
             'audio_watch':_AUDIO_WATCH.snapshot()}
 
 
-def local_llama_client():
-    global _LLAMA_RUNTIME, _LLM_STATUS
-    root = Path(os.environ.get('EGB_RESOURCE_ROOT', Path(__file__).resolve().parents[3]))
-    manifest = root / 'installer/offline_assets.json'
-    if _LLAMA_RUNTIME is None:
-        rows = json.loads(manifest.read_text(encoding='utf-8'))['assets']
-        binary = next(row for row in rows if row['path'].endswith('/llama-server.exe'))
-        model = next(row for row in rows if row['path'].endswith('.gguf'))
+def resolve_local_llama_spec(root: Path):
+    active_file = root / 'assets/models/active_ai.json'
+    if not active_file.is_file():
+        active_file = _SETTINGS.path.parent / 'assets/models/active_ai.json'
+    catalog_file = root / 'installer/ai_catalog.json'
+    if active_file.is_file() and catalog_file.is_file():
+        active = json.loads(active_file.read_text(encoding='utf-8'))
+        catalog = json.loads(catalog_file.read_text(encoding='utf-8'))
+        model = next(m for m in catalog['models'] if m['id'] == active.get('model_id'))
+        engine = next(e for e in catalog['engines'] if e['id'] == active.get('engine_id', 'cpu'))
         model_path = root / model['path']
         if not model_path.is_file():
             model_path = _SETTINGS.path.parent / model['path']
-        _LLAMA_RUNTIME = LocalLlamaRuntime(root / binary['path'], model_path,
-                                           binary['sha256'], model['sha256'],
-                                           [(root / row['path'], row['sha256']) for row in rows
-                                            if row['path'].startswith('assets/bin/')])
+        binary_path = root / active['binary_path']
+        runtime_assets = [(root / row['path'], row['sha256']) for row in active.get('runtime_assets', [])
+                          if isinstance(row.get('path'), str) and row['path'].startswith('assets/bin/')]
+        return binary_path, model_path, active['binary_sha256'], model['sha256'], runtime_assets, int(engine.get('gpu_layers', 0))
+
+    manifest = root / 'installer/offline_assets.json'
+    rows = json.loads(manifest.read_text(encoding='utf-8'))['assets']
+    binary = next(row for row in rows if row['path'].endswith('/llama-server.exe'))
+    model = next(row for row in rows if row['path'].endswith('.gguf'))
+    model_path = root / model['path']
+    if not model_path.is_file():
+        model_path = _SETTINGS.path.parent / model['path']
+    runtime_assets = [(root / row['path'], row['sha256']) for row in rows if row['path'].startswith('assets/bin/')]
+    return root / binary['path'], model_path, binary['sha256'], model['sha256'], runtime_assets, 0
+
+
+def local_llama_client():
+    global _LLAMA_RUNTIME, _LLM_STATUS
+    root = Path(os.environ.get('EGB_RESOURCE_ROOT', Path(__file__).resolve().parents[3]))
+    if _LLAMA_RUNTIME is None:
+        binary_path, model_path, binary_sha, model_sha, runtime_assets, gpu_layers = resolve_local_llama_spec(root)
+        _LLAMA_RUNTIME = LocalLlamaRuntime(binary_path, model_path, binary_sha, model_sha,
+                                           runtime_assets, gpu_layers=gpu_layers)
         atexit.register(_LLAMA_RUNTIME.close)
     _LLM_STATUS = {'state': 'loading', 'reason': 'Cargando modelo local'}
     client = _LLAMA_RUNTIME.start()

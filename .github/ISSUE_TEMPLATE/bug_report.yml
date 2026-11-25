@@ -1,0 +1,25 @@
+name: Bug Report
+description: Report a bug or unexpected behavior in Rekord AI
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the issue clearly without pasting private track paths or personal tokens.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version & Environment
+      placeholder: "e.g. v0.4.1, Windows 11 x64, Rekordbox 7.x, Python 3.12, AI profile: balanced (cpu)"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. ...
+        2. ...
