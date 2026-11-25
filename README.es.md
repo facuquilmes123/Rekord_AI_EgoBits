@@ -6,6 +6,7 @@
 
 ### Tu música. Tu próximo gran set. Copiloto IA 100% Offline para DJs de Rekordbox.
 
+[![Demo en Vivo](https://img.shields.io/badge/Demo_en_Vivo-GitHub_Pages-00D2FF?style=for-the-badge&logo=githubpages&logoColor=white)](https://facuquilmes123.github.io/Rekord_AI_EgoBits/)
 [![Versión](https://img.shields.io/badge/Versi%C3%B3n-0.4.1-00D2FF?style=for-the-badge&logo=rust&logoColor=white)](release.json)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](prototype/pyproject.toml)
 [![Tauri 2](https://img.shields.io/badge/Tauri-2.x_Windows_x64-FFC131?style=for-the-badge&logo=tauri&logoColor=black)](desktop/src-tauri/Cargo.toml)
@@ -223,6 +224,14 @@ Conectá las **15 herramientas MCP** a Claude Desktop, Cursor, Antigravity o Cod
   }
 }
 ```
+
+---
+
+## Demo Interactiva Online
+
+👉 **[Abrir la Demo Interactiva en GitHub Pages](https://facuquilmes123.github.io/Rekord_AI_EgoBits/)**
+
+El repositorio incluye una experiencia interactiva en [`website/`](website/index.html) con forma de onda tri-banda estilo CDJ-3000 en Canvas HTML5, rueda armónica Camelot interactiva y comparativa Antes / Después.
 
 ---
 

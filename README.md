@@ -6,6 +6,7 @@
 
 ### Your Music. Your Next Great Set. 100% Offline AI Copilot for Rekordbox DJs.
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-GitHub_Pages-00D2FF?style=for-the-badge&logo=githubpages&logoColor=white)](https://facuquilmes123.github.io/Rekord_AI_EgoBits/)
 [![Version](https://img.shields.io/badge/Version-0.4.1-00D2FF?style=for-the-badge&logo=rust&logoColor=white)](release.json)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](prototype/pyproject.toml)
 [![Tauri 2](https://img.shields.io/badge/Tauri-2.x_Windows_x64-FFC131?style=for-the-badge&logo=tauri&logoColor=black)](desktop/src-tauri/Cargo.toml)
@@ -246,7 +247,9 @@ Expose **15 typed MCP tools** (`system.status`, `playlist.list`, `library.search
 
 ## Interactive Obsidian Landing Showcase
 
-This repository also includes a standalone interactive showcase in [`website/`](website/index.html) featuring a live HTML5 Canvas tri-band CDJ-3000 waveform, interactive Camelot harmonic wheel, and before/after UI comparison slider:
+👉 **[Open the Live Interactive Demo on GitHub Pages](https://facuquilmes123.github.io/Rekord_AI_EgoBits/)**
+
+This repository also includes the standalone interactive showcase in [`website/`](website/index.html) featuring a live HTML5 Canvas tri-band CDJ-3000 waveform, interactive Camelot harmonic wheel, and before/after UI comparison slider:
 
 ```powershell
 python -m http.server 8080 --directory website
